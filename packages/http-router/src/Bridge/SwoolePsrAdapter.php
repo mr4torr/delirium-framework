@@ -10,8 +10,8 @@ use OpenSwoole\Http\Request as SwooleRequest;
 use OpenSwoole\Http\Response as SwooleResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\UploadedFileInterface;
-use Psr\Http\Message\UriInterface;
+// use Psr\Http\Message\UploadedFileInterface;
+// use Psr\Http\Message\UriInterface;
 
 class SwoolePsrAdapter implements ContextAdapterInterface
 {
@@ -90,7 +90,7 @@ class SwoolePsrAdapter implements ContextAdapterInterface
         // Headers
         foreach ($psrResponse->getHeaders() as $name => $values) {
             foreach ($values as $value) {
-                $swooleResponse->header($name, $value);
+                $swooleResponse->header((string) $name, $value);
             }
         }
 

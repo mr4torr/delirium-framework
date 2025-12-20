@@ -1,0 +1,117 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Delirium\Core;
+
+use Delirium\Core\Contract\ApplicationInterface;
+use Delirium\Http\Contract\RouterInterface;
+use Psr\Container\ContainerInterface;
+use OpenSwoole\Http\Server;
+use OpenSwoole\Http\Request;
+use OpenSwoole\Http\Response;
+use Delirium\Http\Bridge\SwoolePsrAdapter;
+use Delirium\Core\Options\CorsOptions;
+
+class Application implements ApplicationInterface
+{
+    public function __construct(
+        private ContainerInterface $container,
+        private AppOptions $options,
+        private RouterInterface $router
+    ) {
+    }
+
+    public function listen(int $port = 9501, string $host = '0.0.0.0'): void
+    {
+        $server = new Server($host, $port);
+        $this->configureServer($server);
+        $server->start();
+    }
+
+    public function getContainer(): ContainerInterface
+    {
+        return $this->container;
+    }
+
+    private function configureServer(Server $server): void
+    {
+        $server->set(
+            [
+                'worker_num' => 4,
+                // 'task_worker_num' => 4,
+                'max_request' => 10000,
+                'daemonize' => false,
+                'reactor_num' => 2,
+                'max_connection' => 1024,
+                'package_max_length' => 2 * 1024 * 1024,
+                // 'package_max_count' => 100,
+            ]
+        );
+        $server->on('Start', function (Server $server) {
+            echo "OpenSwoole http server is started at http://{$server->host}:{$server->port}\n";
+        });
+
+        $server->on('Request', function (Request $request, Response $response) {
+            $this->handleRequest($request, $response);
+        });
+    }
+
+    private function handleRequest(Request $request, Response $response): void
+    {
+        // Handle CORS
+        $corsOptions = $this->options->get(CorsOptions::class);
+        if ($corsOptions) {
+            $this->applyCorsHeaders($response, $corsOptions);
+            if ($request->server['request_method'] === 'OPTIONS') {
+                $response->status(204);
+                $response->end();
+                return;
+            }
+        }
+
+        // Dispatch to Router
+        try {
+            // Need PSR-7 Adapter
+            // Assuming HttpModule provided the factories, but for Core we might instantiate them manually or via container.
+            // Let's use direct instantiation for zero-dependency if possible, 
+            // but we likely need nyholm/psr7 factory which is in http-router composer.json
+            
+            $adapter = new SwoolePsrAdapter();
+            
+            $psrRequest = $adapter->createFromSwoole($request);
+            
+            $result = $this->router->dispatch($psrRequest);
+            
+            // Handle Result 
+            // Result could be ResponseInterface or string or anything (RouterInterface returns mixed)
+            // If ResponseInterface, emit it.
+            
+            if ($result instanceof \Psr\Http\Message\ResponseInterface) {
+                $adapter->emitToSwoole($result, $response);
+            } elseif (is_string($result)) {
+                $response->end($result);
+            } else {
+                 $response->header('Content-Type', 'application/json');
+                 $response->end(json_encode($result));
+            }
+
+        } catch (\Delirium\Http\Exception\RouteNotFoundException $e) {
+            $response->status(404);
+            $response->end('Not Found');
+        } catch (\Delirium\Http\Exception\MethodNotAllowedException $e) {
+             $response->status(405);
+             $response->end('Method Not Allowed');
+        } catch (\Throwable $e) {
+            $response->status(500);
+            $response->end('Internal Server Error: ' . $e->getMessage());
+        }
+    }
+
+    private function applyCorsHeaders(Response $response, CorsOptions $cors): void
+    {
+        $response->header('Access-Control-Allow-Origin', implode(', ', $cors->allowOrigins));
+        $response->header('Access-Control-Allow-Methods', implode(', ', $cors->allowMethods));
+        $response->header('Access-Control-Allow-Headers', implode(', ', $cors->allowHeaders));
+    }
+}
