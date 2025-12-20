@@ -66,7 +66,7 @@ class AppFactory
             throw new \InvalidArgumentException("Class '$moduleClass' is not annotated with #[AppModule].");
         }
 
-        /** @var \Delirium\Core\Attribute\AppModule $module */
+        /** @var \Delirium\Core\Attribute\Module $module */
         $module = $attributes[0]->newInstance();
 
         // Register Providers
