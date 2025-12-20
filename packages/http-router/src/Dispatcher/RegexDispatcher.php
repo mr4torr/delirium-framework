@@ -48,6 +48,13 @@ class RegexDispatcher implements DispatcherInterface
         ];
     }
 
+    private ?\Psr\Container\ContainerInterface $container = null;
+
+    public function setContainer(\Psr\Container\ContainerInterface $container): void
+    {
+        $this->container = $container;
+    }
+
     public function dispatch(ServerRequestInterface $request): mixed
     {
         $method = $request->getMethod();
@@ -55,7 +62,7 @@ class RegexDispatcher implements DispatcherInterface
         
         // 1. Static Match
         if (isset($this->staticRoutes[$method][$path])) {
-            return $this->executeHandler($this->staticRoutes[$method][$path]);
+            return $this->executeHandler($this->staticRoutes[$method][$path], [], $request);
         }
         
         // 2. Dynamic Match
@@ -65,14 +72,8 @@ class RegexDispatcher implements DispatcherInterface
                     // Filter integer keys
                     $params = array_filter($matches, fn($key) => !is_int($key), ARRAY_FILTER_USE_KEY);
                     
-                    // Inject params into request attributes? Or pass to handler?
-                    // "Acceptance Scenario: ... controller receives 123 as an argument"
-                    // To do this, we need to know the handler capability.
-                    // If handler is callable, we invoke it with params.
-                    // Ideally we also put them in Request Attributes.
-                    
                     foreach ($params as $key => $value) {
-                        $request = $request->withAttribute($key, $value);
+                        $request = $request->withAttribute((string)$key, $value);
                     }
                     
                     return $this->executeHandler($route['handler'], $params, $request);
@@ -81,7 +82,6 @@ class RegexDispatcher implements DispatcherInterface
         }
         
         // 3. 404 Not Found or 405 Method Not Allowed
-        // Check if path exists in other methods for 405
         $allowedMethods = [];
         foreach ($this->staticRoutes as $m => $routes) {
             if ($m !== $method && isset($routes[$path])) {
@@ -107,34 +107,29 @@ class RegexDispatcher implements DispatcherInterface
 
     private function executeHandler(mixed $handler, array $params = [], ?ServerRequestInterface $request = null): mixed
     {
-        // $handler should be [Class, Method] or Callable
-        
         if (is_array($handler) && count($handler) === 2) {
             [$class, $method] = $handler;
-            // Instantiation strategy? For MVP, just new Class.
-            // In real framework, Container gets it.
-            // We don't have container injected here yet.
-            // Assumption: Simple instantiation for MVP.
             
-            $instance = new $class();
+            $instance = null;
+            if ($this->container && $this->container->has($class)) {
+                $instance = $this->container->get($class);
+            } elseif (class_exists($class)) {
+                // Fallback if not in container but exists (e.g. simple controller)
+                // Though with DI we prefer container use.
+                // However, constructor injection relies on container.
+                // If class exists but not in container, simple new() might fail dependencies.
+                // US4 Implicit Registration implies it should be in container or auto-wired.
+                // If it's not in container, we try new() but if it has deps it fails.
+                $instance = new $class();
+            } else {
+                 throw new \RuntimeException("Controller class '$class' not found.");
+            }
             
-            // Argument interaction using Reflection to map params
-            // If param is found in $params, pass it.
-            // If type hinted ServerRequestInterface, pass $request.
-            
-            // Note: This logic belongs to a Resolver, but put here for basic US3 fulfillment.
-            
-            // Simple approach: Pass Request if first arg, then Params?
-            // Acceptance SC-001: "1 controller and 1 attribute".
-            // Acceptance 3 SC-003: "type compatibility with ServerRequestInterface".
-            // Acceptance 3 Scenario 1: "controller receives 123 as an argument".
-            
-            // We need reflection to map arguments.
             return $this->invokeWithReflection($instance, $method, $params, $request);
         }
         
         if (is_callable($handler)) {
-            return $handler(...$params); // Simplistic
+            return $handler(...$params); 
         }
         
         throw new \RuntimeException("Invalid handler");
@@ -148,16 +143,30 @@ class RegexDispatcher implements DispatcherInterface
         foreach ($refMethod->getParameters() as $param) {
             $name = $param->getName();
             $type = $param->getType();
+            $typeName = $type && !$type->isBuiltin() ? $type->getName() : null;
             
-            if ($type && !$type->isBuiltin() && $type->getName() === ServerRequestInterface::class) {
+            // Priority 1: ServerRequestInterface
+            if ($typeName === ServerRequestInterface::class && $request) {
                 $args[] = $request;
-            } elseif (isset($params[$name])) {
-                $args[] = $params[$name];
-            } elseif ($param->isDefaultValueAvailable()) {
-                $args[] = $param->getDefaultValue();
-            } else {
-                throw new \RuntimeException("Missing parameter '$name' for route handler.");
+                continue;
             }
+            // Priority 2: Route Parameters
+            if (isset($params[$name])) {
+                $args[] = $params[$name];
+                continue;
+            }
+            // Priority 3: Container Service (Method Injection)
+            if ($typeName && $this->container && $this->container->has($typeName)) {
+                $args[] = $this->container->get($typeName);
+                continue;
+            }
+            // Priority 4: Default Value
+            if ($param->isDefaultValueAvailable()) {
+                $args[] = $param->getDefaultValue();
+                continue;
+            }
+            
+            throw new \RuntimeException("Missing parameter '$name' for route handler '{$refMethod->class}::$method'.");
         }
         
         return $refMethod->invokeArgs($instance, $args);

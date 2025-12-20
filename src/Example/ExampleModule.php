@@ -9,7 +9,13 @@ use Delirium\Core\Attribute\Module;
 
 // Example Root Module
 #[Module(
-    controllers: [ExampleController::class],
+    controllers: [
+        ExampleController::class,
+        PropertyInjectedController::class
+    ],
+    providers: [
+        // GreetingService::class
+    ],
     imports: [GroupModule::class]
 )]
 class ExampleModule

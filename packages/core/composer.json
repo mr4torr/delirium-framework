@@ -17,7 +17,8 @@
         "php": "^8.4",
         "openswoole/core": "^22.2",
         "psr/http-message": "^2.0",
-        "psr/container": "^2.0"
+        "psr/container": "^2.0",
+        "delirium/dependency-injection": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.5"

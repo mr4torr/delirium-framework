@@ -1,0 +1,28 @@
+{
+    "name": "delirium/dependency-injection",
+    "description": "PSR-11 Dependency Injection component for Delirium Framework",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Delirium\\DI\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Delirium\\DI\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.5"
+    },
+    "require": {
+        "php": ">=8.4",
+        "symfony/dependency-injection": "^7.2",
+        "symfony/config": "^7.2",
+        "psr/container": "^2.0"
+    }
+}

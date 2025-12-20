@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Delirium\Core;
 
-use Delirium\Core\Container\Container;
 use Delirium\Core\Contract\ApplicationInterface;
+use Delirium\DI\ContainerBuilder;
+use Psr\Container\ContainerInterface;
 
 /**
  * Static Factory to bootstrap the application.
@@ -24,18 +25,54 @@ class AppFactory
         // 1. Initialize Options
         $appOptions = $options ?? new AppOptions();
 
-        // 2. Initialize Container
-        $container = new Container();
+        // 2. Initialize Container (Cached or New)
+        $cacheFile = dirname(__DIR__, 3) . '/var/cache/dependency-injection.php';
+        $debug = true; // TODO: Get from options/env
 
-        // 3. Initialize Router
-        $router = new \Delirium\Http\Router();
-        $container->set(\Delirium\Http\Contract\RouterInterface::class, $router);
-        $container->set(\Delirium\Http\Router::class, $router); // Alias if needed
+        if (!$debug && file_exists($cacheFile)) {
+            require_once $cacheFile;
+            // The dumped container class is usually 'Delirium\DI\Cache\ProjectServiceContainer'
+            /** @var ContainerInterface $container */
+            $container = new \Delirium\DI\Cache\ProjectServiceContainer();
+        } else {
+            $builder = new ContainerBuilder();
+            // Register Router as generic service first (instance)
+            $router = new \Delirium\Http\Router();
+            $builder->getInnerBuilder()->set(\Delirium\Http\Contract\RouterInterface::class, $router);
+            $builder->getInnerBuilder()->set(\Delirium\Http\Router::class, $router);
 
-        // 4. Scan Module and Register Services/Controllers
-        $visited = [];
-        self::scanModule($moduleClass, $container, $router, $visited);
-        
+            // Scan Module
+            $visited = [];
+            self::scanModule($moduleClass, $builder, $router, $visited);
+
+            // Build and Dump
+            $builder->build('dev'); // env
+            $builder->dump($cacheFile);
+            
+            // For the immediate usage, we return the builder's compiled container
+            // However, after compile, we can't add more?
+            // Yes, compile happens in build.
+            $container = $builder->getInnerBuilder();
+        }
+
+        // 3. Ensure Router is available if we loaded from cache
+        if (!$container->has(\Delirium\Http\Router::class)) {
+            // If cached container, router should be there if registered?
+            // Instance services (synthetic) are tricky with dumping.
+            // Usually we need to set them at runtime on the cached container.
+            $router = new \Delirium\Http\Router();
+            if (method_exists($container, 'set')) {
+               $container->set(\Delirium\Http\Contract\RouterInterface::class, $router);
+               $container->set(\Delirium\Http\Router::class, $router);
+            }
+        } else {
+             $router = $container->get(\Delirium\Http\Router::class);
+        }
+
+        if (method_exists($router, 'setContainer')) {
+            $router->setContainer($container);
+        }
+
         // 5. Create Application
         return new Application($container, $appOptions, $router);
     }
@@ -48,7 +85,7 @@ class AppFactory
      * @param \Delirium\Http\Contract\RouterInterface $router
      * @param array<string, bool> $visited
      */
-    private static function scanModule(string $moduleClass, Container $container, $router, array &$visited): void
+    private static function scanModule(string $moduleClass, ContainerBuilder $builder, $router, array &$visited): void
     {
         if (isset($visited[$moduleClass])) {
             return; // Cycle detected or already visited
@@ -72,36 +109,31 @@ class AppFactory
         // Register Providers
         foreach ($module->providers as $provider) {
             if (is_string($provider)) {
-                // Register as lazy singleton
-                $container->set($provider, function () use ($provider) {
-                    return new $provider();
-                });
+                $builder->register($provider, $provider);
             } elseif (is_callable($provider)) {
                 // TODO: Support callable/factory providers with ID
             }
         }
 
         // Register Controllers
-        // Helper to get scanner. We assume specific implementation for now or we added scanClass to interface.
-        // Given we are in Core, we can leverage the class directly if needed or check method.
         if ($router instanceof \Delirium\Http\Router) {
-            // Instantiate scanner safely
             static $scanner = null;
             if (!$scanner) {
-                // We need to access registry.
-                // Assuming Router exposes registry via a getter we saw in the file content previously?
-                // Yes: public function getRegistry(): RouteRegistry
                 $scanner = new \Delirium\Http\Scanner\AttributeScanner($router->getRegistry());
             }
             
             foreach ($module->controllers as $controller) {
+                // Registration in DI
+                $builder->register($controller, $controller);
+                
+                // Registration in Router (Routes)
                 $scanner->scanClass($controller);
             }
         }
 
         // Recurse Imports
         foreach ($module->imports as $import) {
-            self::scanModule($import, $container, $router, $visited);
+            self::scanModule($import, $builder, $router, $visited);
         }
     }
 }

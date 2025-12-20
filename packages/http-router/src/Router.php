@@ -34,12 +34,25 @@ class Router implements RouterInterface
         }
     }
 
+    private mixed $container = null; // ContainerInterface|null
+
+    public function setContainer(mixed $container): void
+    {
+        $this->container = $container;
+        if ($this->dispatcher && method_exists($this->dispatcher, 'setContainer')) {
+            $this->dispatcher->setContainer($container);
+        }
+    }
+
     private bool $compiled = false;
 
     public function dispatch(ServerRequestInterface $request): mixed
     {
         if (!$this->dispatcher) {
             $this->dispatcher = new Dispatcher\RegexDispatcher();
+            if ($this->container && method_exists($this->dispatcher, 'setContainer')) {
+                $this->dispatcher->setContainer($this->container);
+            }
         }
 
         if (!$this->compiled) {
