@@ -11,7 +11,11 @@
         }
     },
     "autoload-dev": {
-        "psr-4": {}
+        "psr-4": {
+            "Delirium\\Core\\Tests\\": "packages/core/tests/",
+            "Delirium\\Http\\Tests\\": "packages/http-router/tests/",
+            "Delirium\\DI\\Tests\\": "packages/dependency-injection/tests/"
+        }
     },
     "authors": [
         {

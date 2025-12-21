@@ -34,8 +34,9 @@ class UserController
 
 ```php
 use Delirium\Http\Router;
+use Delirium\Http\RouteRegistry;
 
-$router = new Router();
+$router = new Router(new RouteRegistry());
 $router->scan(__DIR__ . '/Controllers'); // Scans directory for attributes
 
 // Dispatch a PSR-7 Request
@@ -48,10 +49,13 @@ Use `SwoolePsrAdapter` to convert OpenSwoole requests to PSR-7.
 
 ```php
 use Delirium\Http\Bridge\SwoolePsrAdapter;
+use Delirium\Http\RouteRegistry;
 
 $http = new OpenSwoole\Http\Server('127.0.0.1', 9501);
-$adapter = new SwoolePsrAdapter();
-$router = new Router();
+$psr17Factory = new \Nyholm\Psr7\Factory\Psr17Factory();
+$adapter = new SwoolePsrAdapter($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
+
+$router = new Router(new RouteRegistry());
 $router->scan(__DIR__ . '/src');
 
 $http->on('request', function ($swooleRequest, $swooleResponse) use ($adapter, $router) {

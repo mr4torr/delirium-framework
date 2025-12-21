@@ -10,15 +10,16 @@ use Psr\Container\ContainerInterface;
 use OpenSwoole\Http\Server;
 use OpenSwoole\Http\Request;
 use OpenSwoole\Http\Response;
-use Delirium\Http\Bridge\SwoolePsrAdapter;
 use Delirium\Core\Options\CorsOptions;
+use Delirium\Http\Contract\ContextAdapterInterface;
 
 class Application implements ApplicationInterface
 {
     public function __construct(
         private ContainerInterface $container,
         private AppOptions $options,
-        private RouterInterface $router
+        private RouterInterface $router,
+        private ContextAdapterInterface $adapter
     ) {
     }
 
@@ -72,14 +73,9 @@ class Application implements ApplicationInterface
 
         // Dispatch to Router
         try {
-            // Need PSR-7 Adapter
-            // Assuming HttpModule provided the factories, but for Core we might instantiate them manually or via container.
-            // Let's use direct instantiation for zero-dependency if possible, 
-            // but we likely need nyholm/psr7 factory which is in http-router composer.json
+            // Adapter is injected
             
-            $adapter = new SwoolePsrAdapter();
-            
-            $psrRequest = $adapter->createFromSwoole($request);
+            $psrRequest = $this->adapter->createFromSwoole($request);
             
             $result = $this->router->dispatch($psrRequest);
             
@@ -88,7 +84,7 @@ class Application implements ApplicationInterface
             // If ResponseInterface, emit it.
             
             if ($result instanceof \Psr\Http\Message\ResponseInterface) {
-                $adapter->emitToSwoole($result, $response);
+                $this->adapter->emitToSwoole($result, $response);
             } elseif (is_string($result)) {
                 $response->end($result);
             } else {

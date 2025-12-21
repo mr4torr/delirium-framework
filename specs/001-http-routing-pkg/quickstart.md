@@ -31,9 +31,10 @@ class UserController
 
 ```php
 use Delirium\Http\Router;
+use Delirium\Http\RouteRegistry;
 use Swoole\Http\Server;
 
-$router = new Router();
+$router = new Router(new RouteRegistry());
 $router->scan(__DIR__ . '/Controllers'); // Scans classes
 
 $server = new Server("0.0.0.0", 9501);

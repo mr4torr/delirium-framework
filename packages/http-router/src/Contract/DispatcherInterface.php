@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Delirium\Http\Contract;
 
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 interface DispatcherInterface
@@ -18,4 +19,5 @@ interface DispatcherInterface
      * Adds a route to the dispatcher's table.
      */
     public function addRoute(string $method, string $path, mixed $handler): void;
+    public function setContainer(ContainerInterface $container): void;
 }

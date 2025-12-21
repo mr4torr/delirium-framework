@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Delirium\Http;
 
-use Delirium\Http\Exception\DuplicateRouteException; // Will implement this or usage generic LogicException
+// use Delirium\Http\Exception\DuplicateRouteException; // Will implement this or usage generic LogicException
 use LogicException;
 
 class RouteRegistry
@@ -28,6 +28,14 @@ class RouteRegistry
     public function getRoutes(): array
     {
         return $this->routes;
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $routes
+     */
+    public function setRoutes(array $routes): void
+    {
+        $this->routes = $routes;
     }
     
     public function getHandler(string $method, string $path): mixed

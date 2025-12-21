@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Delirium\Http\Tests\Integration;
 
 use Delirium\Http\Router;
+use Delirium\Http\RouteRegistry;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 
@@ -19,7 +20,7 @@ class RouterTest extends TestCase
 
     public function testFullScanAndDispatchFlow(): void
     {
-        $router = new Router();
+        $router = new Router(new RouteRegistry());
         $router->scan(__DIR__ . '/../Fixtures');
         
         // Mock Request for GET /dummy/hello
@@ -33,7 +34,7 @@ class RouterTest extends TestCase
     public function testRouteWithParameters(): void
     {
         // Define a dynamic route controller or manual register
-        $router = new Router();
+        $router = new Router(new RouteRegistry());
         $router->register('GET', '/users/{id}', function ($id) {
             return "User: $id";
         });

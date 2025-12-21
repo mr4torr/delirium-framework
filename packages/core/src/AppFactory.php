@@ -6,6 +6,10 @@ namespace Delirium\Core;
 
 use Delirium\Core\Contract\ApplicationInterface;
 use Delirium\DI\ContainerBuilder;
+use Delirium\Http\Contract\RouterInterface;
+use Delirium\Http\DependencyInjection\Compiler\RoutePass;
+use Delirium\Http\Router;
+use Delirium\Http\RouteRegistry;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -27,7 +31,9 @@ class AppFactory
 
         // 2. Initialize Container (Cached or New)
         $cacheFile = dirname(__DIR__, 3) . '/var/cache/dependency-injection.php';
-        $debug = true; // TODO: Get from options/env
+        
+        $debugOptions = $appOptions->get(Options\DebugOptions::class);
+        $debug = $debugOptions ? $debugOptions->debug : false;
 
         if (!$debug && file_exists($cacheFile)) {
             require_once $cacheFile;
@@ -36,56 +42,55 @@ class AppFactory
             $container = new \Delirium\DI\Cache\ProjectServiceContainer();
         } else {
             $builder = new ContainerBuilder();
-            // Register Router as generic service first (instance)
-            $router = new \Delirium\Http\Router();
-            $builder->getInnerBuilder()->set(\Delirium\Http\Contract\RouterInterface::class, $router);
-            $builder->getInnerBuilder()->set(\Delirium\Http\Router::class, $router);
+            $container = $builder->getInnerBuilder();            
+            $container->addCompilerPass(new RoutePass());
+            
+            $builder->register(RouteRegistry::class, RouteRegistry::class);
+            $builder->register(Router::class, Router::class);
+                        
+            $container->setAlias('router', Router::class)->setPublic(true);
+            $container->setAlias(RouterInterface::class, Router::class)->setPublic(true);
 
             // Scan Module
             $visited = [];
-            self::scanModule($moduleClass, $builder, $router, $visited);
+            self::scanModule($moduleClass, $builder, $visited);
 
             // Build and Dump
-            $builder->build('dev'); // env
-            $builder->dump($cacheFile);
+            $builder->build($debug ? 'dev' : 'prod'); // env
+            if(!$debug) {
+                $builder->dump($cacheFile);                
+            }
             
-            // For the immediate usage, we return the builder's compiled container
-            // However, after compile, we can't add more?
-            // Yes, compile happens in build.
+            /** @var ContainerInterface */
             $container = $builder->getInnerBuilder();
         }
 
-        // 3. Ensure Router is available if we loaded from cache
-        if (!$container->has(\Delirium\Http\Router::class)) {
-            // If cached container, router should be there if registered?
-            // Instance services (synthetic) are tricky with dumping.
-            // Usually we need to set them at runtime on the cached container.
-            $router = new \Delirium\Http\Router();
-            if (method_exists($container, 'set')) {
-               $container->set(\Delirium\Http\Contract\RouterInterface::class, $router);
-               $container->set(\Delirium\Http\Router::class, $router);
-            }
-        } else {
-             $router = $container->get(\Delirium\Http\Router::class);
-        }
+        /** @var Router */
+        $router = $container->get(Router::class);
+        $router->setContainer($container);
+    
+        // 5. Create Adapter
+        // We use Nyholm/Psr7 factory implementation strictly
+        $psr17Factory = new \Nyholm\Psr7\Factory\Psr17Factory();
+        $adapter = new \Delirium\Http\Bridge\SwoolePsrAdapter(
+            $psr17Factory, // ServerRequestFactory
+            $psr17Factory, // UriFactory
+            $psr17Factory, // StreamFactory
+            $psr17Factory  // UploadedFileFactory
+        );
 
-        if (method_exists($router, 'setContainer')) {
-            $router->setContainer($container);
-        }
-
-        // 5. Create Application
-        return new Application($container, $appOptions, $router);
+        // 6. Create Application
+        return new Application($container, $appOptions, $router, $adapter);
     }
 
     /**
      * Recursively scan modules.
      *
      * @param string $moduleClass
-     * @param Container $container
-     * @param \Delirium\Http\Contract\RouterInterface $router
+     * @param ContainerBuilder $builder
      * @param array<string, bool> $visited
      */
-    private static function scanModule(string $moduleClass, ContainerBuilder $builder, $router, array &$visited): void
+    private static function scanModule(string $moduleClass, ContainerBuilder $builder, array &$visited): void
     {
         if (isset($visited[$moduleClass])) {
             return; // Cycle detected or already visited
@@ -116,24 +121,14 @@ class AppFactory
         }
 
         // Register Controllers
-        if ($router instanceof \Delirium\Http\Router) {
-            static $scanner = null;
-            if (!$scanner) {
-                $scanner = new \Delirium\Http\Scanner\AttributeScanner($router->getRegistry());
-            }
-            
-            foreach ($module->controllers as $controller) {
-                // Registration in DI
-                $builder->register($controller, $controller);
-                
-                // Registration in Router (Routes)
-                $scanner->scanClass($controller);
-            }
+        foreach ($module->controllers as $controller) {
+            // Registration in DI
+            $builder->register($controller, $controller);
         }
 
         // Recurse Imports
         foreach ($module->imports as $import) {
-            self::scanModule($import, $builder, $router, $visited);
+            self::scanModule($import, $builder, $visited);
         }
     }
 }
