@@ -11,7 +11,8 @@ use Delirium\Core\Attribute\Module;
 #[Module(
     controllers: [
         ExampleController::class,
-        PropertyInjectedController::class
+        PropertyInjectedController::class,
+        PsrInjectionController::class
     ],
     providers: [
         // GreetingService::class

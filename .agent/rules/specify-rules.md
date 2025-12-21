@@ -13,6 +13,7 @@ Auto-generated from all feature plans. Last updated: 2025-12-20
 - PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial. (005-live-reload)
 - PHP 8.4+ + `symfony/dependency-injection`, `nyholm/psr7`, `psr/container`, `psr/http-message` (007-use-psr-interfaces)
 - PHP 8.4+ + `symfony/dependency-injection`, `nyholm/psr7` (Standard PSRs are preferred) (008-interface-abstraction)
+- PHP 8.4+ + `nyholm/psr7`, `psr/http-message` (009-response-class-implementation)
 
 - PHP 8.4 + openswoole/core, psr/http-message, psr/container (001-http-routing-pkg)
 
@@ -32,9 +33,9 @@ tests/
 PHP 8.4: Follow standard conventions
 
 ## Recent Changes
+- 009-response-class-implementation: Added PHP 8.4+ + `nyholm/psr7`, `psr/http-message`
 - 008-interface-abstraction: Added PHP 8.4+ + `symfony/dependency-injection`, `nyholm/psr7` (Standard PSRs are preferred)
 - 007-use-psr-interfaces: Added PHP 8.4+ + `symfony/dependency-injection`, `nyholm/psr7`, `psr/container`, `psr/http-message`
-- 005-live-reload: Added PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial.
 
 
 <!-- MANUAL ADDITIONS START -->

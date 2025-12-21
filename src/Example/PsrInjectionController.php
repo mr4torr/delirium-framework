@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Example;
 
-use Delirium\Http\Attribute\Controller;
 use Delirium\Http\Attribute\Get;
+use Delirium\Http\Attribute\Controller;
+use Delirium\Core\Http\Response;
+use Delirium\Core\Http\JsonResponse;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Nyholm\Psr7\Response;
-use Psr\Http\Message\StreamInterface;
 
 #[Controller]
 class PsrInjectionController
@@ -19,17 +19,27 @@ class PsrInjectionController
         private ContainerInterface $container
     ) {}
 
-    #[Get('/psr-test')]
-    public function index(ServerRequestInterface $request, Response $response, StreamInterface $stream): ResponseInterface
+    #[Get('/psr-response')]
+    public function index(ServerRequestInterface $request, Response $response): ResponseInterface
     {
         $hasContainer = $this->container instanceof ContainerInterface;
         $method = $request->getMethod();
-    
-        
-        $response->withStatus(200);
-        $stream->write("PSR Injection Works! Method: {$method}, Container Injected: " . ($hasContainer ? 'Yes' : 'No'));
-        $response->withBody($stream);
 
-        return $response;
+        return $response->body([
+            'teste' => 'PSR Injection Works! Method: ' . $method . ', Container Injected: ' . ($hasContainer ? 'Yes' : 'No')
+        ]);
+    }
+
+    #[Get('/psr-json')]
+    public function indexJson(ServerRequestInterface $request, JsonResponse $response): ResponseInterface
+    {
+        $hasContainer = $this->container instanceof ContainerInterface;
+        $method = $request->getMethod();
+        $queryParams = $request->getQueryParams();
+
+        return $response->body([
+            'teste' => 'PSR Injection Works! Method: ' . $method . ', Container Injected: ' . ($hasContainer ? 'Yes' : 'No'),
+            ...$queryParams
+        ]);
     }
 }

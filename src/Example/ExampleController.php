@@ -28,4 +28,15 @@ class ExampleController
     {
         return "Method Injection: " . $svc->greet($name) . " URL: " . $req->getUri()->getPath();
     }
+
+    #[Get('/array/{name}')]
+    public function contentArray(string $name, GreetingService $svc, ServerRequestInterface $req): array
+    {
+        return [
+            'name' => $name,
+            'greeting' => $svc->greet($name),
+            'url' => $req->getUri()->getPath(),
+            'params' => $req->getQueryParams(),
+        ];
+    }
 }
