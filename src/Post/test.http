@@ -1,0 +1,13 @@
+@host=http://localhost:9501
+
+### POST
+
+# POST {{host}}/post/123?name=mr4torr
+POST {{host}}/post/123
+Content-Type: application/json
+
+{
+    "name": "Hello",
+    "email": "Hello",
+    "age": 12
+}

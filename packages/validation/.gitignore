@@ -3,5 +3,3 @@ vendor/
 .phpunit.result.cache
 .php-cs-fixer.cache
 tests/tmp/
-!var/keep
-var/cache/

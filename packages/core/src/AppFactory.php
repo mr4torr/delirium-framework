@@ -65,9 +65,29 @@ class AppFactory
             $container = $builder->getInnerBuilder();
         }
 
-        /** @var Router */
         $router = $container->get(Router::class);
         $router->setContainer($container);
+
+        // Configure Dispatcher with Argument Resolvers
+        $dispatcher = new \Delirium\Http\Dispatcher\RegexDispatcher();
+        $dispatcher->setContainer($container);
+
+        // validation & hydration
+        $hydrator = new \Delirium\Core\Hydrator\ObjectHydrator();
+        $validator = new \Delirium\Validation\Adapter\SymfonyValidatorAdapter();
+        $payloadResolver = new \Delirium\Core\Resolver\PayloadResolver($hydrator, $validator);
+
+        // Resolver Chain
+        $chain = new \Delirium\Http\Resolver\ArgumentResolverChain([
+            new \Delirium\Http\Resolver\ServerRequestResolver(),
+            new \Delirium\Http\Resolver\RouteParameterResolver(),
+            $payloadResolver, // Feature 006
+            new \Delirium\Http\Resolver\ContainerServiceResolver($container),
+            new \Delirium\Http\Resolver\DefaultValueResolver(),
+        ]);
+
+        $dispatcher->setArgumentResolverChain($chain);
+        $router->setDispatcher($dispatcher);
     
         // 5. Create Adapter
         // We use Nyholm/Psr7 factory implementation strictly

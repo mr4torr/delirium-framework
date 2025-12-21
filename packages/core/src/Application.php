@@ -99,6 +99,10 @@ class Application implements ApplicationInterface
         } catch (\Delirium\Http\Exception\MethodNotAllowedException $e) {
              $response->status(405);
              $response->end('Method Not Allowed');
+        } catch (\Delirium\Http\Exception\ValidationException $e) {
+             $response->status($e->getCode());
+             $response->header('Content-Type', 'application/json');
+             $response->end(json_encode($e));
         } catch (\Throwable $e) {
             $response->status(500);
             $response->end('Internal Server Error: ' . $e->getMessage());

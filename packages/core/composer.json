@@ -7,7 +7,8 @@
         "psr-4": {
             "Delirium\\Core\\": "src/",
             "Delirium\\DI\\": "../dependency-injection/src/",
-            "Delirium\\Http\\": "../http-router/src/"
+            "Delirium\\Http\\": "../http-router/src/",
+            "Delirium\\Validation\\": "../validation/src/"
         }
     },
     "autoload-dev": {
@@ -22,7 +23,8 @@
         "psr/container": "^2.0",
         "symfony/dependency-injection": "^7.2",
         "symfony/config": "^7.2",
-        "nyholm/psr7": "^1.8"
+        "nyholm/psr7": "^1.8",
+        "symfony/validator": "^8.0"
     },
     "scripts": {
         "test": "vendor/bin/phpunit"
