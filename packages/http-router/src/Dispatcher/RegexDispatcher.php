@@ -138,39 +138,53 @@ class RegexDispatcher implements DispatcherInterface
         throw new \RuntimeException("Invalid handler");
     }
     
+    private ?\Delirium\Http\Resolver\ArgumentResolverChain $resolverChain = null;
+
+    public function setArgumentResolverChain(\Delirium\Http\Resolver\ArgumentResolverChain $chain): void
+    {
+        $this->resolverChain = $chain;
+    }
+
+    private function getResolverChain(): \Delirium\Http\Resolver\ArgumentResolverChain
+    {
+        if ($this->resolverChain !== null) {
+            return $this->resolverChain;
+        }
+
+        $resolvers = [
+            new \Delirium\Http\Resolver\ServerRequestResolver(),
+            new \Delirium\Http\Resolver\RouteParameterResolver(),
+        ];
+
+        if ($this->container) {
+            $resolvers[] = new \Delirium\Http\Resolver\ContainerServiceResolver($this->container);
+        }
+
+        $resolvers[] = new \Delirium\Http\Resolver\DefaultValueResolver();
+
+        return $this->resolverChain = new \Delirium\Http\Resolver\ArgumentResolverChain($resolvers);
+    }
+
     private function invokeWithReflection(object $instance, string $method, array $params, ?ServerRequestInterface $request): mixed
     {
         $refMethod = new \ReflectionMethod($instance, $method);
-        $args = [];
         
-        foreach ($refMethod->getParameters() as $param) {
-            $name = $param->getName();
-            $type = $param->getType();
-            $typeName = ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) ? $type->getName() : null;
-            
-            // Priority 1: ServerRequestInterface
-            if ($typeName === ServerRequestInterface::class && $request) {
-                $args[] = $request;
-                continue;
+        // Ensure request has route params as attributes for RouteParameterResolver
+        if ($request && !empty($params)) {
+            foreach ($params as $key => $value) {
+                $request = $request->withAttribute((string)$key, $value);
             }
-            // Priority 2: Route Parameters
-            if (isset($params[$name])) {
-                $args[] = $params[$name];
-                continue;
-            }
-            // Priority 3: Container Service (Method Injection)
-            if ($typeName && $this->container && $this->container->has($typeName)) {
-                $args[] = $this->container->get($typeName);
-                continue;
-            }
-            // Priority 4: Default Value
-            if ($param->isDefaultValueAvailable()) {
-                $args[] = $param->getDefaultValue();
-                continue;
-            }
-            
-            throw new \RuntimeException("Missing parameter '$name' for route handler '{$refMethod->class}::$method'.");
         }
+
+        // If request is null (shouldn't happen in dispatch, but for safety), create a dummy or handle constraints?
+        // The dispatch method always passes request.
+        
+        if (!$request) {
+            throw new \RuntimeException("Request object is required for argument resolution.");
+        }
+
+        $resolverChain = $this->getResolverChain();
+        $args = $resolverChain->resolveArguments($request, $refMethod->getParameters());
         
         return $refMethod->invokeArgs($instance, $args);
     }

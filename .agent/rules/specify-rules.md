@@ -32,7 +32,6 @@ PHP 8.4: Follow standard conventions
 ## Recent Changes
 - 005-live-reload: Added PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial.
 - 005-live-reload: Added PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial.
-- 003-dependency-injection: Added PHP 8.4+ + `symfony/dependency-injection`, `symfony/config`
 
 
 <!-- MANUAL ADDITIONS START -->

@@ -1,0 +1,22 @@
+{
+    "name": "delirium/validation",
+    "description": "Validation package for Delirium Framework",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Delirium\\Validation\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=8.4",
+        "symfony/validator": "^8.0"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
