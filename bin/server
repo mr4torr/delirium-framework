@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Delirium\Core\Application;
+
+// Load application bootstrap
+/** @var Application $app */
+$app = require __DIR__ . '/../public/index.php';
+
+// Check instance
+if (!$app instanceof Application) {
+    echo "Error: public/index.php did not return an Application instance.\n";
+    exit(1);
+}
+
+// Start Server
+$app->listen();

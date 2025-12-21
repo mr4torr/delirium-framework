@@ -1,0 +1,16 @@
+{
+    "name": "delirium/dev-tools",
+    "description": "Development tools for Delirium Framework",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Delirium\\DevTools\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=8.4",
+        "delirium/core": "*"
+    },
+    "minimum-stability": "dev"
+}

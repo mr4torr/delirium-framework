@@ -9,6 +9,8 @@ Auto-generated from all feature plans. Last updated: 2025-12-20
 ## Active Technologies
 - PHP 8.4+ + `symfony/dependency-injection`, `symfony/config` (003-dependency-injection)
 - File system for cached container (`var/cache/`) (003-dependency-injection)
+- PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial. (005-live-reload)
+- PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial. (005-live-reload)
 
 - PHP 8.4 + openswoole/core, psr/http-message, psr/container (001-http-routing-pkg)
 
@@ -28,7 +30,8 @@ tests/
 PHP 8.4: Follow standard conventions
 
 ## Recent Changes
-- 003-dependency-injection: Added PHP 8.4+ + `symfony/dependency-injection`, `symfony/config`
+- 005-live-reload: Added PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial.
+- 005-live-reload: Added PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial.
 - 003-dependency-injection: Added PHP 8.4+ + `symfony/dependency-injection`, `symfony/config`
 
 
