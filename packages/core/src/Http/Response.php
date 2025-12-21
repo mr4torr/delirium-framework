@@ -18,9 +18,15 @@ class Response extends Psr7Response implements ResponseInterface
      */
     public function body(mixed $content, HttpStatusEnum $code = HttpStatusEnum::Ok): static
     {
-        return $this
-            ->withStatus($code->code(), $code->reasonPhrase())
-            ->withBody(Stream::create($this->content($content)));
+        $new = $this->withStatus($code->code(), $code->reasonPhrase());
+
+        if (is_array($content) || is_object($content)) {
+            if (!$new->hasHeader('Content-Type')) {
+                $new = $new->withHeader('Content-Type', 'application/json');
+            }
+        }
+
+        return $new->withBody(Stream::create($this->content($content)));
     }
 
     protected function content(mixed $body): string|bool

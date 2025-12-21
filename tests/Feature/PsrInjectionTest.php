@@ -27,7 +27,8 @@ class PsrInjectionTest extends TestCase
         $request->method('getMethod')->willReturn('GET');
 
         $controller = new \App\Example\PsrInjectionController($container);
-        $response = $controller->index($request);
+        // Inject a Response object as the second argument, as required by the modified signature
+        $response = $controller->index($request, new \Delirium\Core\Http\Response());
 
         $this->assertInstanceOf(\Psr\Http\Message\ResponseInterface::class, $response);
         $this->assertEquals(200, $response->getStatusCode());

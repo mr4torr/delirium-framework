@@ -27,7 +27,7 @@ class ResponseClassTest extends TestCase
     {
         // Scenario 2: Using JsonResponse directly
         $data = ['error' => 'not_found'];
-        $response = new JsonResponse(404, $data);
+        $response = new JsonResponse(404, [], $data);
 
         $this->assertEquals(404, $response->getStatusCode());
         $this->assertEquals('application/json', $response->getHeaderLine('Content-Type'));

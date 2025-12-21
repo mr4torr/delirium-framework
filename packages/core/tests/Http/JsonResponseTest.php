@@ -13,7 +13,7 @@ class JsonResponseTest extends TestCase
     public function testConstructorSetsHeaderAndBody(): void
     {
         $data = ['foo' => 'bar'];
-        $response = new JsonResponse($data, 201);
+        $response = new JsonResponse(201, [], $data);
 
         $this->assertSame(201, $response->getStatusCode());
         $this->assertSame('application/json', $response->getHeaderLine('Content-Type'));
@@ -22,7 +22,7 @@ class JsonResponseTest extends TestCase
 
     public function testConstructorMergesHeaders(): void
     {
-        $response = new JsonResponse(['a' => 1], 200, ['X-Custom' => 'Value']);
+        $response = new JsonResponse(200, ['X-Custom' => 'Value'], ['a' => 1]);
 
         $this->assertSame('Value', $response->getHeaderLine('X-Custom'));
         $this->assertSame('application/json', $response->getHeaderLine('Content-Type'));
@@ -32,6 +32,6 @@ class JsonResponseTest extends TestCase
     {
         // JsonResponse should likely extend Response for consistency, or directly PSR-7 but with changed constructor.
         // Given spec says "Specialized class", usually it extends Response or Base.
-        $this->assertInstanceOf(Response::class, new JsonResponse([])); 
+        $this->assertInstanceOf(Response::class, new JsonResponse(200, [], [])); 
     }
 }
