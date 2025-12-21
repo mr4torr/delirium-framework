@@ -7,6 +7,7 @@ namespace Delirium\Http\Tests\Unit;
 use Delirium\Http\Exception\MethodNotAllowedException;
 use Delirium\Http\Exception\RouteNotFoundException;
 use Delirium\Http\Router;
+use Delirium\Http\RouteRegistry;
 use LogicException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
@@ -19,7 +20,7 @@ class EdgeCaseTest extends TestCase
     protected function setUp(): void
     {
         $this->factory = new Psr17Factory();
-        $this->router = new Router();
+        $this->router = new Router(new RouteRegistry());
     }
 
     public function testRouteNotFound(): void

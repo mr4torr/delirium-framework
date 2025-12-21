@@ -7,23 +7,23 @@ namespace Delirium\Http;
 use Delirium\Http\Contract\RouterInterface;
 use Delirium\Http\Contract\DispatcherInterface;
 use Delirium\Http\Scanner\AttributeScanner;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 class Router implements RouterInterface
 {
-    private RouteRegistry $registry;
-    private AttributeScanner $scanner;
     private ?DispatcherInterface $dispatcher = null;
+    private bool $compiled = false;
 
-    public function __construct()
+    public function __construct(
+        private RouteRegistry $registry 
+    )
     {
-        $this->registry = new RouteRegistry();
-        $this->scanner = new AttributeScanner($this->registry);
     }
 
     public function scan(string $directory): void
     {
-        $this->scanner->scanDirectory($directory);
+        (new AttributeScanner($this->registry))->scanDirectory($directory);
     }
 
     public function register(string|array $methods, string $path, callable|array $handler): void
@@ -34,17 +34,15 @@ class Router implements RouterInterface
         }
     }
 
-    private mixed $container = null; // ContainerInterface|null
+    private ?ContainerInterface $container = null;
 
-    public function setContainer(mixed $container): void
+    public function setContainer(ContainerInterface $container): void
     {
         $this->container = $container;
         if ($this->dispatcher && method_exists($this->dispatcher, 'setContainer')) {
             $this->dispatcher->setContainer($container);
         }
     }
-
-    private bool $compiled = false;
 
     public function dispatch(ServerRequestInterface $request): mixed
     {

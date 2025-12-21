@@ -8,6 +8,7 @@ use Delirium\Http\Contract\DispatcherInterface;
 use Delirium\Http\Exception\MethodNotAllowedException;
 use Delirium\Http\Exception\RouteNotFoundException;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Container\ContainerInterface;
 
 class RegexDispatcher implements DispatcherInterface
 {
@@ -48,9 +49,9 @@ class RegexDispatcher implements DispatcherInterface
         ];
     }
 
-    private ?\Psr\Container\ContainerInterface $container = null;
+    private ?ContainerInterface $container = null;
 
-    public function setContainer(\Psr\Container\ContainerInterface $container): void
+    public function setContainer(ContainerInterface $container): void
     {
         $this->container = $container;
     }
@@ -109,6 +110,8 @@ class RegexDispatcher implements DispatcherInterface
     {
         if (is_array($handler) && count($handler) === 2) {
             [$class, $method] = $handler;
+            /** @var string $class */
+            $class = (string) $class;
             
             $instance = null;
             if ($this->container && $this->container->has($class)) {
@@ -143,7 +146,7 @@ class RegexDispatcher implements DispatcherInterface
         foreach ($refMethod->getParameters() as $param) {
             $name = $param->getName();
             $type = $param->getType();
-            $typeName = $type && !$type->isBuiltin() ? $type->getName() : null;
+            $typeName = ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) ? $type->getName() : null;
             
             // Priority 1: ServerRequestInterface
             if ($typeName === ServerRequestInterface::class && $request) {

@@ -21,7 +21,8 @@ class BridgeTest extends TestCase
 
     public function testCreateFromSwoole(): void
     {
-        $adapter = new SwoolePsrAdapter();
+        $psr17Factory = new \Nyholm\Psr7\Factory\Psr17Factory();
+        $adapter = new SwoolePsrAdapter($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
         
         $swooleRequest = $this->createMock(SwooleRequest::class);
         $swooleRequest->server = [
@@ -50,7 +51,8 @@ class BridgeTest extends TestCase
 
     public function testEmitToSwoole(): void
     {
-        $adapter = new SwoolePsrAdapter();
+        $psr17Factory = new \Nyholm\Psr7\Factory\Psr17Factory();
+        $adapter = new SwoolePsrAdapter($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
         
         $swooleResponse = $this->createMock(SwooleResponse::class);
         $swooleResponse->expects($this->once())->method('status')->with(201, 'Created');

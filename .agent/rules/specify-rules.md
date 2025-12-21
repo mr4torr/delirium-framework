@@ -30,7 +30,6 @@ PHP 8.4: Follow standard conventions
 ## Recent Changes
 - 003-dependency-injection: Added PHP 8.4+ + `symfony/dependency-injection`, `symfony/config`
 - 003-dependency-injection: Added PHP 8.4+ + `symfony/dependency-injection`, `symfony/config`
-- 003-dependency-injection: Added PHP 8.4+ + `symfony/dependency-injection`, `symfony/config`
 
 
 <!-- MANUAL ADDITIONS START -->

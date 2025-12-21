@@ -10,12 +10,13 @@ use Delirium\Core\AppFactory;
 AppFactory::create(App\AppModule::class)->listen();
 
 
-
 // use Delirium\Core\AppOptions;
 // use Delirium\Core\Options\CorsOptions;
+// use Delirium\Core\Options\DebugOptions;
 
 // Bootstrap with options
 // AppFactory::create(App\AppModule::class, new AppOptions(
+//     new DebugOptions(debug: true)
 //     new CorsOptions(
 //         allowOrigins: ['*'],
 //         allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

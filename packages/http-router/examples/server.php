@@ -4,17 +4,19 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Delirium\Http\Bridge\SwoolePsrAdapter;
 use Delirium\Http\Router;
+use Delirium\Http\RouteRegistry;
 use OpenSwoole\Http\Server;
 use OpenSwoole\Http\Request;
 use OpenSwoole\Http\Response;
 
 // 1. Setup Router
-$router = new Router();
+$router = new Router(new RouteRegistry());
 echo "Scanning controllers...\n";
 $router->scan(__DIR__ . '/Controllers');
 
 // 2. Setup Bridge
-$adapter = new SwoolePsrAdapter();
+$psr17Factory = new \Nyholm\Psr7\Factory\Psr17Factory();
+$adapter = new SwoolePsrAdapter($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
 
 // 3. Setup OpenSwoole Server
 $server = new Server('127.0.0.1', 9501);

@@ -5,21 +5,23 @@ declare(strict_types=1);
 namespace Delirium\Http\Bridge;
 
 use Delirium\Http\Contract\ContextAdapterInterface;
-use Nyholm\Psr7\Factory\Psr17Factory;
 use OpenSwoole\Http\Request as SwooleRequest;
 use OpenSwoole\Http\Response as SwooleResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-// use Psr\Http\Message\UploadedFileInterface;
-// use Psr\Http\Message\UriInterface;
+use Psr\Http\Message\ServerRequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\UploadedFileFactoryInterface;
+use Psr\Http\Message\UriFactoryInterface;
 
 class SwoolePsrAdapter implements ContextAdapterInterface
 {
-    private Psr17Factory $psr17Factory;
-
-    public function __construct()
-    {
-        $this->psr17Factory = new Psr17Factory();
+    public function __construct(
+        private ServerRequestFactoryInterface $serverRequestFactory,
+        private UriFactoryInterface $uriFactory,
+        private StreamFactoryInterface $streamFactory,
+        private UploadedFileFactoryInterface $uploadedFileFactory
+    ) {
     }
 
     public function createFromSwoole(SwooleRequest $swooleRequest): ServerRequestInterface
@@ -33,7 +35,7 @@ class SwoolePsrAdapter implements ContextAdapterInterface
         $rawContent = $swooleRequest->getContent() ?: '';
 
         // Build URI
-        $uri = $this->psr17Factory->createUri()
+        $uri = $this->uriFactory->createUri()
             ->withScheme(isset($server['https']) && $server['https'] !== 'off' ? 'https' : 'http')
             ->withHost($headers['host'] ?? 'localhost')
             ->withPort($server['server_port'] ?? 80)
@@ -41,13 +43,13 @@ class SwoolePsrAdapter implements ContextAdapterInterface
             ->withQuery($server['query_string'] ?? '');
 
         // Create Request
-        $request = $this->psr17Factory->createServerRequest(
+        $request = $this->serverRequestFactory->createServerRequest(
             $server['request_method'] ?? 'GET',
             $uri,
             $server
         );
 
-        // Headers
+        // ... headers ...
         foreach ($headers as $name => $value) {
             $request = $request->withHeader($name, $value);
         }
@@ -61,12 +63,11 @@ class SwoolePsrAdapter implements ContextAdapterInterface
         // Parsed Body (Post)
         $request = $request->withParsedBody($post);
 
-        // Uploaded Files - Need mapping logic, skipping deep mapping for MVP, simple assignment if matching structure
-        // Nyholm factory has createUploadedFile but we need to iterate $files
+        // Uploaded Files
         $uploadedFiles = [];
         foreach ($files as $key => $file) {
-            $uploadedFiles[$key] = $this->psr17Factory->createUploadedFile(
-                $this->psr17Factory->createStreamFromFile($file['tmp_name']),
+            $uploadedFiles[$key] = $this->uploadedFileFactory->createUploadedFile(
+                $this->streamFactory->createStreamFromFile($file['tmp_name']),
                 $file['size'],
                 $file['error'],
                 $file['name'],
@@ -76,7 +77,7 @@ class SwoolePsrAdapter implements ContextAdapterInterface
         $request = $request->withUploadedFiles($uploadedFiles);
 
         // Body Stream
-        $stream = $this->psr17Factory->createStream($rawContent);
+        $stream = $this->streamFactory->createStream($rawContent);
         $request = $request->withBody($stream);
 
         return $request;
