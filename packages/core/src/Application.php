@@ -47,6 +47,7 @@ class Application implements ApplicationInterface
                 'max_connection' => 1024,
                 'package_max_length' => 2 * 1024 * 1024,
                 // 'package_max_count' => 100,
+                'enable_reuse_port' => true,
             ]
         );
         $server->on('Start', function (Server $server) {

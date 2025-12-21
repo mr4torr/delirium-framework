@@ -1,0 +1,55 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Delirium\Core\AppOptions;
+use Delirium\Core\Application;
+use Delirium\Core\Options\DebugOptions;
+use Delirium\DevTools\Watcher;
+use Delirium\DevTools\ProcessManager;
+
+// 1. Load Application
+$app = require __DIR__ . '/../public/index.php';
+
+if (!$app instanceof Application) {
+    echo "Error: public/index.php did not return an Application instance.\n";
+    exit(1);
+}
+
+// 2. Extract Options using Reflection
+try {
+    $reflection = new \ReflectionClass($app);
+    $property = $reflection->getProperty('options');
+    $property->setAccessible(true);
+    /** @var AppOptions $appOptions */
+    $appOptions = $property->getValue($app);
+    
+    $debugOptions = $appOptions->get(DebugOptions::class);
+} catch (\ReflectionException $e) {
+    echo "Error reflecting application options: " . $e->getMessage() . "\n";
+    exit(1);
+}
+
+// 3. Check Configuration
+if (!$debugOptions?->liveReload) {
+    echo "Live Reload is disabled in DebugOptions.\n";
+    echo "Enable it by setting 'liveReload: true' in your AppOptions config.\n";
+    echo "Example: new DebugOptions(debug: true, liveReload: true)\n";
+    exit(0);
+}
+
+$dirs = $debugOptions->watchDirs;
+// Normalize dirs to absolute paths relative to project root if needed, 
+// but usually recursive iterator handles relative paths from CWD.
+// We are in 'bin', so 'src' works if CWD is project root.
+// The user runs 'php bin/watcher' from project root.
+
+// 4. Run Watcher
+$command = [PHP_BINARY, __DIR__ . '/server']; // Execute bin/server
+$processManager = new ProcessManager($command, getcwd());
+$watcher = new Watcher($dirs, $processManager);
+
+$watcher->watch();
