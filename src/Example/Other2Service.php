@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Example;
 
+use Psr\Container\ContainerInterface;
+
 class Other2Service
 {
     public function __construct(
-        protected \Psr\Container\ContainerInterface $container
+        protected ContainerInterface $container
     ) {
     }
 

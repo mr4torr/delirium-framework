@@ -7,7 +7,7 @@ namespace App\Example;
 use Delirium\Http\Attribute\Controller;
 use Delirium\Http\Attribute\Get;
 use App\Example\GreetingService;
-use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 // Example Controller
 #[Controller('/')]
@@ -24,8 +24,8 @@ class ExampleController
     }
 
     #[Get('/inject/{name}')]
-    public function methodInjection(string $name, GreetingService $svc): string
+    public function methodInjection(string $name, GreetingService $svc, ServerRequestInterface $req): string
     {
-        return "Method Injection: " . $svc->greet($name);
+        return "Method Injection: " . $svc->greet($name) . " URL: " . $req->getUri()->getPath();
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Delirium\DI\Compiler;
 
-use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Delirium\DI\Contract\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use ReflectionClass;
 

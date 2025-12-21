@@ -7,6 +7,8 @@ namespace Delirium\DI;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder as SymfonyContainerBuilder;
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
+use Delirium\DI\Contract\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 
 class ContainerBuilder
 {
@@ -18,6 +20,12 @@ class ContainerBuilder
         $this->container->setAlias(ContainerInterface::class, 'service_container')->setPublic(true);
         $this->container->addCompilerPass(new Compiler\DiscoveryPass());
         $this->container->addCompilerPass(new Compiler\PropertyInjectionPass());
+    }
+
+    public function addCompilerPass(CompilerPassInterface $pass, string $type = PassConfig::TYPE_BEFORE_OPTIMIZATION, int $priority = 0): self
+    {
+        $this->container->addCompilerPass($pass, $type, $priority);
+        return $this;
     }
 
     public function register(string $id, string $class): \Symfony\Component\DependencyInjection\Definition

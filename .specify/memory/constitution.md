@@ -52,6 +52,10 @@ Due to the persistent memory model of Swoole:
 Robustness is achieved through strict interfaces using PHP 8.4+ features.
 - **Strict Types:** `declare(strict_types=1);` is mandatory in every file.
 - **Interfaces First:** Components communicate via interfaces (`Contracts`), not concrete implementations, enabling easier mocking and swapping.
+- **Third-Party Abstraction:** Third-party dependencies MUST be abstracted behind framework-controlled interfaces.
+  - If a PSR interface exists, use it.
+  - If no PSR exists, create a `Delirium\Contract` interface that extends the vendor interface (if deep integration) or adapts it (if loose integration).
+  - Eliminate direct vendor type-hints in `src/`.
 
 ### V. Modular Architecture
 
