@@ -7,9 +7,7 @@ namespace Delirium\Core\Tests\Integration;
 use Delirium\Core\AppFactory;
 use Delirium\Core\Tests\Fixtures\Hierarchy\RootModule;
 use Delirium\Http\Contract\RouterInterface;
-use Delirium\Http\Router;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ServerRequestInterface;
 
 class RecursiveModuleTest extends TestCase
 {
