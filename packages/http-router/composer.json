@@ -1,6 +1,6 @@
 {
     "name": "delirium/http-router",
-    "description": "Attribute-based HTTP Router for Delirium Framework (OpenSwoole + PSR-7)",
+    "description": "Attribute-based HTTP Router for Delirium Framework (Swoole + PSR-7)",
     "type": "library",
     "license": "MIT",
     "autoload": {
@@ -18,7 +18,7 @@
     },
     "require": {
         "php": "^8.4",
-        "openswoole/core": "^22.0",
+        "ext-swoole": "*",
         "psr/http-message": "^2.0",
         "psr/http-factory": "^1.1",
         "psr/container": "^2.0",

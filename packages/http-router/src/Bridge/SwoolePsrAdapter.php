@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Delirium\Http\Bridge;
 
 use Delirium\Http\Contract\ContextAdapterInterface;
-use OpenSwoole\Http\Request as SwooleRequest;
-use OpenSwoole\Http\Response as SwooleResponse;
+use Swoole\Http\Request as SwooleRequest;
+use Swoole\Http\Response as SwooleResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;

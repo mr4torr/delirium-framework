@@ -23,7 +23,7 @@ if (!$app instanceof Application) {
 try {
     $reflection = new \ReflectionClass($app);
     $property = $reflection->getProperty('options');
-    $property->setAccessible(true);
+    // $property->setAccessible(true);
     /** @var AppOptions $appOptions */
     $appOptions = $property->getValue($app);
     

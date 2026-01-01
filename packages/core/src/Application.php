@@ -7,9 +7,9 @@ namespace Delirium\Core;
 use Delirium\Core\Contract\ApplicationInterface;
 use Delirium\Http\Contract\RouterInterface;
 use Psr\Container\ContainerInterface;
-use OpenSwoole\Http\Server;
-use OpenSwoole\Http\Request;
-use OpenSwoole\Http\Response;
+use Swoole\Http\Server;
+use Swoole\Http\Request;
+use Swoole\Http\Response;
 use Delirium\Core\Options\CorsOptions;
 use Delirium\Http\Contract\ContextAdapterInterface;
 
@@ -51,7 +51,7 @@ class Application implements ApplicationInterface
             ]
         );
         $server->on('Start', function (Server $server) {
-            echo "OpenSwoole http server is started at http://{$server->host}:{$server->port}\n";
+            echo "Swoole http server is started at http://{$server->host}:{$server->port}\n";
         });
 
         $server->on('Request', function (Request $request, Response $response) {

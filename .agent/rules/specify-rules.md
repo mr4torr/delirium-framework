@@ -11,6 +11,7 @@ Auto-generated from all feature plans. Last updated: 2025-12-20
 - File system for cached container (`var/cache/`) (003-dependency-injection)
 - PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial. (005-live-reload)
 - PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial. (005-live-reload)
+- PHP 8.4 + `ext-swoole` (replacing `openswoole/core`), `swoole/ide-helper` (dev) (010-switch-to-swoole)
 
 - PHP 8.4 + openswoole/core, psr/http-message, psr/container (001-http-routing-pkg)
 
@@ -30,7 +31,8 @@ tests/
 PHP 8.4: Follow standard conventions
 
 ## Recent Changes
-- 005-live-reload: Added PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial.
+- 011-spc-compiler: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+- 010-switch-to-swoole: Added PHP 8.4 + `ext-swoole` (replacing `openswoole/core`), `swoole/ide-helper` (dev)
 - 005-live-reload: Added PHP 8.4 (CLI) + None (Standard Library) or `Swoole\Process` if beneficial.
 
 
