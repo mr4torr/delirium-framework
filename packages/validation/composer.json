@@ -10,13 +10,5 @@
     "require": {
         "php": ">=8.4",
         "symfony/validator": "^8.0"
-    },
-    "require-dev": {
-        "pestphp/pest": "^3.0"
-    },
-    "config": {
-        "allow-plugins": {
-            "pestphp/pest-plugin": true
-        }
     }
 }
