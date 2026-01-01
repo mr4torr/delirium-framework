@@ -1,0 +1,17 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Delirium\Compile\Command\CompileCommand;
+use Symfony\Component\Console\Application;
+
+$application = new Application('Delirium Compiler', '1.0.0');
+$application->addCommand(new CompileCommand());
+
+// Set default command
+$application->setDefaultCommand('compile', true);
+
+$application->run();

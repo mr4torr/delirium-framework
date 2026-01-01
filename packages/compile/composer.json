@@ -1,0 +1,20 @@
+{
+    "name": "delirium/compile",
+    "description": "Delirium Framework SPC Compiler",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Delirium\\Compile\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.4",
+        "ext-phar": "*",
+        "ext-json": "*",
+        "symfony/console": "^8.0"
+    },
+    "require-dev": {
+        "crazywhalecc/static-php-cli": "^2.5"
+    }
+}
