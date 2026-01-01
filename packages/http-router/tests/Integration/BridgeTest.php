@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Delirium\Http\Tests\Integration;
 
 use Delirium\Http\Bridge\SwoolePsrAdapter;
-use OpenSwoole\Http\Request as SwooleRequest;
-use OpenSwoole\Http\Response as SwooleResponse;
+use Swoole\Http\Request as SwooleRequest;
+use Swoole\Http\Response as SwooleResponse;
 use PHPUnit\Framework\TestCase;
 use Nyholm\Psr7\Response;
 
@@ -14,8 +14,8 @@ class BridgeTest extends TestCase
 {
     protected function setUp(): void
     {
-        if (!class_exists('OpenSwoole\Http\Request')) {
-            $this->markTestSkipped('OpenSwoole extension or polyfill not available.');
+        if (!class_exists('Swoole\Http\Request')) {
+            $this->markTestSkipped('Swoole extension or polyfill not available.');
         }
     }
 

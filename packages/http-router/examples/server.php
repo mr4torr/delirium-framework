@@ -5,9 +5,9 @@ require __DIR__ . '/../vendor/autoload.php';
 use Delirium\Http\Bridge\SwoolePsrAdapter;
 use Delirium\Http\Router;
 use Delirium\Http\RouteRegistry;
-use OpenSwoole\Http\Server;
-use OpenSwoole\Http\Request;
-use OpenSwoole\Http\Response;
+use Swoole\Http\Server;
+use Swoole\Http\Request;
+use Swoole\Http\Response;
 
 // 1. Setup Router
 $router = new Router(new RouteRegistry());
@@ -18,11 +18,11 @@ $router->scan(__DIR__ . '/Controllers');
 $psr17Factory = new \Nyholm\Psr7\Factory\Psr17Factory();
 $adapter = new SwoolePsrAdapter($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
 
-// 3. Setup OpenSwoole Server
+// 3. Setup Swoole Server
 $server = new Server('127.0.0.1', 9501);
 
 $server->on('Start', function (Server $server) {
-    echo "OpenSwoole http server is started at http://127.0.0.1:9501\n";
+    echo "Swoole http server is started at http://127.0.0.1:9501\n";
     echo "Try: curl http://127.0.0.1:9501/api/hello\n";
     echo "Try: curl http://127.0.0.1:9501/api/greet/Mailon\n";
 });

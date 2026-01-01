@@ -18,11 +18,11 @@
     },
     "require": {
         "php": "^8.4",
-        "openswoole/core": "^22.2",
+        "ext-swoole": "*",
         "psr/http-message": "^2.0",
         "psr/container": "^2.0",
-        "symfony/dependency-injection": "^7.2",
-        "symfony/config": "^7.2",
+        "symfony/dependency-injection": "^8.0",
+        "symfony/config": "^8.0",
         "nyholm/psr7": "^1.8",
         "symfony/validator": "^8.0"
     },

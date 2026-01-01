@@ -1,7 +1,7 @@
 # Delirium HTTP Router
 
 Attribute-based HTTP Router for Delirium Framework.
-Powered by PHP 8 Attributes, OpenSwoole, and PSR-7.
+Powered by PHP 8 Attributes, Swoole, and PSR-7.
 
 ## Installation
 
@@ -43,15 +43,15 @@ $router->scan(__DIR__ . '/Controllers'); // Scans directory for attributes
 $response = $router->dispatch($psr7Request);
 ```
 
-### OpenSwoole Bridge
+### Swoole Bridge
 
-Use `SwoolePsrAdapter` to convert OpenSwoole requests to PSR-7.
+Use `SwoolePsrAdapter` to convert Swoole requests to PSR-7.
 
 ```php
 use Delirium\Http\Bridge\SwoolePsrAdapter;
 use Delirium\Http\RouteRegistry;
 
-$http = new OpenSwoole\Http\Server('127.0.0.1', 9501);
+$http = new Swoole\Http\Server('127.0.0.1', 9501);
 $psr17Factory = new \Nyholm\Psr7\Factory\Psr17Factory();
 $adapter = new SwoolePsrAdapter($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
 
@@ -82,5 +82,5 @@ $http->start();
 
 - PHP 8 Attribute Routing (`#[Get]`, `#[Post]`, etc.)
 - Dynamic Route Parameters (`/users/{id}`)
-- OpenSwoole <-> PSR-7 Bridge
+- Swoole <-> PSR-7 Bridge
 - Regex-based Dispatcher

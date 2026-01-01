@@ -5,3 +5,6 @@
 tests/tmp/
 !var/keep
 var/cache/
+!build/keep
+build
+packages/*/vendor/
