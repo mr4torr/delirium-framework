@@ -6,8 +6,10 @@ namespace Delirium\Http\Resolver\Response;
 
 use Delirium\Http\Contract\ResponseInterface;
 use Delirium\Http\Contract\ResponseResolverInterface;
+use Delirium\Http\Enum\ResponseTypeEnum;
 use Delirium\Http\Message\Response;
 use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
@@ -21,17 +23,17 @@ class XmlResolver implements ResponseResolverInterface
     public function supports(mixed $data, ServerRequestInterface $request, array $attributes): bool
     {
         $type = $attributes['type'] ?? null;
-        if ($data instanceof \Psr\Http\Message\ResponseInterface) {
-            return $type === \Delirium\Http\Enum\ResponseTypeEnum::XML;
+        if ($data instanceof PsrResponseInterface) {
+            return $type === ResponseTypeEnum::XML;
         }
         return $type === \Delirium\Http\Enum\ResponseTypeEnum::XML;
     }
 
     public function resolve(mixed $data, ServerRequestInterface $request, array $attributes): ResponseInterface
     {
-         if ($data instanceof \Psr\Http\Message\ResponseInterface) {
+         if ($data instanceof PsrResponseInterface) {
             if (!$data->hasHeader('Content-Type')) {
-                 return $data->withHeader('Content-Type', 'application/xml');
+                 $data = $data->withHeader('Content-Type', 'application/xml');
             }
             return $data instanceof ResponseInterface ? $data : new Response($data, $this->streamFactory);
          }

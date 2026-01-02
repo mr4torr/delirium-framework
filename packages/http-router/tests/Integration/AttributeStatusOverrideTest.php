@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 namespace Delirium\Http\Tests\Integration;
 
-use Delirium\Http\Router;
-use Delirium\Http\RouteRegistry;
 use Delirium\Http\Attribute\Get;
 use Delirium\Http\Contract\ResponseInterface;
+use Delirium\Http\Dispatcher\RegexDispatcher;
+use Delirium\Http\Enum\ResponseTypeEnum;
+use Delirium\Http\Resolver\ArgumentResolverChain;
+use Delirium\Http\Resolver\Request\ResponseResolver;
+use Delirium\Http\Resolver\Response\DefaultValueResolver;
+use Delirium\Http\Resolver\Response\JsonResolver;
+use Delirium\Http\Resolver\Response\ResponseResolverChain;
+use Delirium\Http\Router;
+use Delirium\Http\RouteRegistry;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 
@@ -23,20 +30,20 @@ class AttributeStatusOverrideTest extends TestCase
     private function createConfiguredRouter(): Router
     {
         $registry = new RouteRegistry();
-        $dispatcher = new \Delirium\Http\Dispatcher\RegexDispatcher();
+        $dispatcher = new RegexDispatcher();
 
         $psr17Factory = $this->factory;
 
         // Response Chain
-        $chain = new \Delirium\Http\Resolver\Response\ResponseResolverChain([
-            new \Delirium\Http\Resolver\Response\JsonResolver($psr17Factory, $psr17Factory),
-            new \Delirium\Http\Resolver\Response\DefaultValueResolver($psr17Factory, $psr17Factory),
+        $chain = new ResponseResolverChain([
+            new JsonResolver($psr17Factory, $psr17Factory),
+            new DefaultValueResolver($psr17Factory, $psr17Factory),
         ]);
         $dispatcher->setResponseResolverChain($chain);
 
         // Request Chain - With Fixed ResponseResolver
-        $reqChain = new \Delirium\Http\Resolver\ArgumentResolverChain([
-             new \Delirium\Http\Resolver\Request\ResponseResolver($psr17Factory, $psr17Factory),
+        $reqChain = new ArgumentResolverChain([
+             new ResponseResolver($psr17Factory, $psr17Factory),
         ]);
         $dispatcher->setArgumentResolverChain($reqChain);
 
@@ -57,7 +64,7 @@ class AttributeStatusOverrideTest extends TestCase
                 return $response;
             }
 
-            #[Get(path: '/override', status: 201, type: \Delirium\Http\Enum\ResponseTypeEnum::JSON)]
+            #[Get(path: '/override', status: 201, type: ResponseTypeEnum::JSON)]
             public function override(ResponseInterface $response) {
                  return $response->withStatus(400)->withHeader('Content-Type', 'text/plain');
             }

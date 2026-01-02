@@ -6,10 +6,12 @@ namespace Delirium\Http\Tests\Dispatcher;
 
 use Attribute;
 use Delirium\Http\Dispatcher\RegexDispatcher;
+use Delirium\Http\Enum\ResponseTypeEnum;
 use Delirium\Http\Resolver\ArgumentResolverChain;
 use Delirium\Http\Resolver\Response\ResponseResolverChain;
 use Delirium\Http\Resolver\Response\JsonResolver;
 use Delirium\Http\Resolver\Response\DefaultValueResolver;
+use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,7 +26,7 @@ class RouteStub {
 }
 
 class ControllerStub {
-    #[RouteStub(type: \Delirium\Http\Enum\ResponseTypeEnum::JSON)]
+    #[RouteStub(type: ResponseTypeEnum::JSON)]
     public function jsonParams() {
         return ['foo' => 'bar'];
     }
@@ -45,8 +47,8 @@ class AttributeResponseTest extends TestCase
         $this->dispatcher = new RegexDispatcher();
 
         // Use Real Factories if available for integration test
-        if (class_exists(\Nyholm\Psr7\Factory\Psr17Factory::class)) {
-            $factory = new \Nyholm\Psr7\Factory\Psr17Factory();
+        if (class_exists(Psr17Factory::class)) {
+            $factory = new Psr17Factory();
 
             $this->responseChain = new ResponseResolverChain([
                 new JsonResolver($factory, $factory),
@@ -67,7 +69,7 @@ class AttributeResponseTest extends TestCase
 
     public function testJsonAttribute()
     {
-        $factory = new \Nyholm\Psr7\Factory\Psr17Factory();
+        $factory = new Psr17Factory();
 
         $this->dispatcher->addRoute('GET', '/json', [ControllerStub::class, 'jsonParams']);
 
@@ -84,7 +86,7 @@ class AttributeResponseTest extends TestCase
 
     public function testStatusAttribute()
     {
-        $factory = new \Nyholm\Psr7\Factory\Psr17Factory();
+        $factory = new Psr17Factory();
 
         $this->dispatcher->addRoute('POST', '/created', [ControllerStub::class, 'createdStatus']);
 

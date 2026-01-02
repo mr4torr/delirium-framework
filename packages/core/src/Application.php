@@ -5,14 +5,19 @@ declare(strict_types=1);
 namespace Delirium\Core;
 
 use Delirium\Core\Contract\ApplicationInterface;
-use Delirium\Http\Contract\RouterInterface;
-use Psr\Container\ContainerInterface;
-use Swoole\Http\Server;
-use Swoole\Http\Request;
-use Swoole\Http\Response;
 use Delirium\Core\Options\CorsOptions;
 use Delirium\Core\Options\ServerOptions;
 use Delirium\Http\Contract\ContextAdapterInterface;
+use Delirium\Http\Contract\RouterInterface;
+use Delirium\Http\Exception\MethodNotAllowedException;
+use Delirium\Http\Exception\RouteNotFoundException;
+use Delirium\Http\Exception\ValidationException;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseInterface;
+use Swoole\Http\Request;
+use Swoole\Http\Response;
+use Swoole\Http\Server;
+use Throwable;
 
 class Application implements ApplicationInterface
 {
@@ -82,7 +87,7 @@ class Application implements ApplicationInterface
             // Result could be ResponseInterface or string or anything (RouterInterface returns mixed)
             // If ResponseInterface, emit it.
 
-            if ($result instanceof \Psr\Http\Message\ResponseInterface) {
+            if ($result instanceof ResponseInterface) {
                 $this->adapter->emitToSwoole($result, $response);
             } elseif (is_string($result)) {
                 $response->end($result);
@@ -91,17 +96,17 @@ class Application implements ApplicationInterface
                  $response->end(json_encode($result));
             }
 
-        } catch (\Delirium\Http\Exception\RouteNotFoundException $e) {
+        } catch (RouteNotFoundException $e) {
             $response->status(404);
             $response->end('Not Found');
-        } catch (\Delirium\Http\Exception\MethodNotAllowedException $e) {
+        } catch (MethodNotAllowedException $e) {
              $response->status(405);
              $response->end('Method Not Allowed');
-        } catch (\Delirium\Http\Exception\ValidationException $e) {
+        } catch (ValidationException $e) {
              $response->status($e->getCode());
              $response->header('Content-Type', 'application/json');
              $response->end(json_encode($e));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $response->status(500);
             $response->end('Internal Server Error: ' . $e->getMessage());
         }

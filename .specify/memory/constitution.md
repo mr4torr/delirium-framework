@@ -1,16 +1,16 @@
 <!--
 SYNC IMPACT REPORT
-Version: 1.3.0 (Minor)
+Version: 1.4.0 (Minor)
 Date: 2026-01-02
 
 Changes:
-- Bumped version to 1.3.0 (Minor) due to introduction of Code Quality Standards principle.
-- Added [PRINCIPLE_8] "Code Quality Standards" enforcing SOLID, DRY, and Object Calisthenics.
-- Updated Governance dates.
+- Bumped version to 1.4.0 (Minor) due to addition of Namespace Import Standards.
+- Modified [PRINCIPLE_8] "Code Quality Standards" to enforce `use` statements over inline FQNs.
+- Verified templates (No structure changes required, rule is stylistic).
 
 Templates Status:
 - .specify/templates/plan-template.md: ✅ Verified
-- .specify/templates/spec-template.md: ✅ Verified (No Change Required)
+- .specify/templates/spec-template.md: ✅ Verified
 - .specify/templates/tasks-template.md: ✅ Verified
 
 TODOs:
@@ -75,6 +75,7 @@ Code generation and implementation must adhere to recognized craftsmanship stand
 - **DRY (Don't Repeat Yourself):** Abstractions should be created to avoid code duplication, provided they do not introduce accidental coupling.
 - **Object Calisthenics:** Follow best practices for object-oriented design (e.g., keep methods small, minimize indentation levels, avoid getter/setter abuse where rich domain models are possible).
 - **Refactoring Guru:** Design implementation must align with the canonical examples and structures provided by [Refactoring Guru](https://refactoring.guru/design-patterns).
+- **Import Ordering:** Inline FQNs (Fully Qualified Names) are prohibited inside functions/methods. All dependencies must be imported via the `use` mechanism at the top of the file to maintain readability and reduce visual noise.
 
 ## Design Patterns Architecture
 
@@ -140,4 +141,4 @@ This Constitution is the highest law of the Delirium Framework development.
 - **Enforcement:** Code reviews must explicitly verify adherence to "Swoole-First" and "Design Patterns" principals. Non-compliant code (e.g., blocking I/O) will be rejected immediately.
 - **Communication:** Whenever you communicate in the chat, please communicate in Portuguese (Brazil).
 
-**Version:** 1.3.0 | **Ratified:** 2025-12-20 | **Last Amended:** 2026-01-02
+**Version:** 1.4.0 | **Ratified:** 2025-12-20 | **Last Amended:** 2026-01-02

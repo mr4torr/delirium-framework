@@ -7,6 +7,7 @@ namespace Delirium\Http\Tests\Unit\Scanner;
 use Delirium\Http\RouteRegistry;
 use Delirium\Http\Scanner\AttributeScanner;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 class AttributeScannerTest extends TestCase
 {
@@ -22,14 +23,14 @@ class AttributeScannerTest extends TestCase
     public function testScansComplexFixtures(): void
     {
         $fixtureDir = __DIR__ . '/../../Fixtures/Complex';
-        
+
         // Use reflection to access private getClassFromFile or just test public scanDirectory
         // Since scanDirectory actually requires the file and instantiates dependencies,
         // and our fixtures rely on Attribute classes being loaded, we should ensure autoloading works.
         // For unit testing internal method 'getClassFromFile', we might need reflection or expose it.
         // Let's assume we want to test that getClassFromFile correctly identifies the classes.
-        
-        $ref = new \ReflectionClass($this->scanner);
+
+        $ref = new ReflectionClass($this->scanner);
         $method = $ref->getMethod('getClassFromFile');
         $method->setAccessible(true);
 

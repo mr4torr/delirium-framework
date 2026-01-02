@@ -7,9 +7,18 @@ namespace Delirium\Http\Dispatcher;
 use Delirium\Http\Contract\DispatcherInterface;
 use Delirium\Http\Exception\MethodNotAllowedException;
 use Delirium\Http\Exception\RouteNotFoundException;
+use Delirium\Http\Resolver\ArgumentResolverChain;
+use Delirium\Http\Resolver\Request\ContainerServiceResolver;
+use Delirium\Http\Resolver\Request\DefaultValueResolver;
+use Delirium\Http\Resolver\Request\RouteParameterResolver;
+use Delirium\Http\Resolver\Request\ServerRequestResolver;
+use Delirium\Http\Resolver\Response\ResponseResolverChain;
 use Nyholm\Psr7\Response;
+use Nyholm\Psr7\ServerRequest;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Container\ContainerInterface;
+use RuntimeException;
+use ReflectionMethod;
 
 class RegexDispatcher implements DispatcherInterface
 {
@@ -124,7 +133,7 @@ class RegexDispatcher implements DispatcherInterface
                 } elseif (class_exists($class)) {
                     $instance = new $class();
                 } else {
-                     throw new \RuntimeException("Controller class '$class' not found.");
+                     throw new RuntimeException("Controller class '$class' not found.");
                 }
             }
 
@@ -142,52 +151,52 @@ class RegexDispatcher implements DispatcherInterface
             // $attributes = $refFunction->getAttributes(); ...
             // keeping it simple for now, generic resolution.
 
-            return $this->getResponseResolverChain()->resolve($results, $request ?? new \Nyholm\Psr7\ServerRequest('GET', '/'), []);
+            return $this->getResponseResolverChain()->resolve($results, $request ?? new ServerRequest('GET', '/'), []);
         }
 
-        throw new \RuntimeException("Invalid handler");
+        throw new RuntimeException("Invalid handler");
     }
 
-    private ?\Delirium\Http\Resolver\ArgumentResolverChain $requestResolverChain = null;
+    private ?ArgumentResolverChain $requestResolverChain = null;
 
-    public function setArgumentResolverChain(\Delirium\Http\Resolver\ArgumentResolverChain $chain): void
+    public function setArgumentResolverChain(ArgumentResolverChain $chain): void
     {
         $this->requestResolverChain = $chain;
     }
 
     /**
      * TODO: Fazer com que essa função seja um arquivos de configuração que permite definir as classes Resolver (Middleware)
-     * @return \Delirium\Http\Resolver\ArgumentResolverChain|null
+     * @return ArgumentResolverChain|null
      */
-    private function getRequestResolverChain(): \Delirium\Http\Resolver\ArgumentResolverChain
+    private function getRequestResolverChain(): ArgumentResolverChain
     {
         if ($this->requestResolverChain !== null) {
             return $this->requestResolverChain;
         }
 
         $resolvers = [
-            new \Delirium\Http\Resolver\Request\ServerRequestResolver(),
-            new \Delirium\Http\Resolver\Request\RouteParameterResolver(),
+            new ServerRequestResolver(),
+            new RouteParameterResolver(),
         ];
 
         if ($this->container) {
-            $resolvers[] = new \Delirium\Http\Resolver\Request\ContainerServiceResolver($this->container);
+            $resolvers[] = new ContainerServiceResolver($this->container);
         }
 
-        $resolvers[] = new \Delirium\Http\Resolver\Request\DefaultValueResolver();
+        $resolvers[] = new DefaultValueResolver();
 
-        return $this->requestResolverChain = new \Delirium\Http\Resolver\ArgumentResolverChain($resolvers);
+        return $this->requestResolverChain = new ArgumentResolverChain($resolvers);
     }
 
 
-    private ?\Delirium\Http\Resolver\Response\ResponseResolverChain $responseResolverChain = null;
+    private ?ResponseResolverChain $responseResolverChain = null;
 
-    public function setResponseResolverChain(\Delirium\Http\Resolver\Response\ResponseResolverChain $chain): void
+    public function setResponseResolverChain(ResponseResolverChain $chain): void
     {
         $this->responseResolverChain = $chain;
     }
 
-    private function getResponseResolverChain(): \Delirium\Http\Resolver\Response\ResponseResolverChain
+    private function getResponseResolverChain(): ResponseResolverChain
     {
         if ($this->responseResolverChain !== null) {
             return $this->responseResolverChain;
@@ -195,12 +204,12 @@ class RegexDispatcher implements DispatcherInterface
 
         // Fallback or throws? Ideally injected.
         // We'll create minimal chain if possibly but dependencies make it hard.
-        throw new \RuntimeException("ResponseResolverChain not configured.");
+        throw new RuntimeException("ResponseResolverChain not configured.");
     }
 
     private function invokeWithReflection(object $instance, string $method, array $params, ?ServerRequestInterface $request): mixed
     {
-        $refMethod = new \ReflectionMethod($instance, $method);
+        $refMethod = new ReflectionMethod($instance, $method);
 
         // Ensure request has route params as attributes for RouteParameterResolver
         if ($request && !empty($params)) {
@@ -210,7 +219,7 @@ class RegexDispatcher implements DispatcherInterface
         }
 
         if (!$request) {
-            throw new \RuntimeException("Request object is required for argument resolution.");
+            throw new RuntimeException("Request object is required for argument resolution.");
         }
 
         // Request Resolution (Args)
