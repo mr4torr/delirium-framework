@@ -6,8 +6,10 @@ namespace Delirium\Http\Resolver\Response;
 
 use Delirium\Http\Contract\ResponseInterface;
 use Delirium\Http\Contract\ResponseResolverInterface;
+use Delirium\Http\Enum\ResponseTypeEnum;
 use Delirium\Http\Message\Response;
 use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
@@ -22,15 +24,15 @@ class StreamResolver implements ResponseResolverInterface
     public function supports(mixed $data, ServerRequestInterface $request, array $attributes): bool
     {
         $type = $attributes['type'] ?? null;
-        if ($data instanceof \Psr\Http\Message\ResponseInterface) {
-             return $type === \Delirium\Http\Enum\ResponseTypeEnum::STREAM;
+        if ($data instanceof PsrResponseInterface) {
+             return $type === ResponseTypeEnum::STREAM;
         }
-        return $type === \Delirium\Http\Enum\ResponseTypeEnum::STREAM || $data instanceof StreamInterface || is_resource($data);
+        return $type === ResponseTypeEnum::STREAM || $data instanceof StreamInterface || is_resource($data);
     }
 
     public function resolve(mixed $data, ServerRequestInterface $request, array $attributes): ResponseInterface
     {
-         if ($data instanceof \Psr\Http\Message\ResponseInterface) {
+         if ($data instanceof PsrResponseInterface) {
              // For stream, we generally don't enforce Content-Type unless we know it.
              // But valid response is valid.
              return $data instanceof ResponseInterface ? $data : new Response($data, $this->streamFactory);

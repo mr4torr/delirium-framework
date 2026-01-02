@@ -7,6 +7,8 @@ namespace Delirium\Http\Message;
 use Delirium\Http\Contract\ResponseInterface;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use SimpleXMLElement;
+use RuntimeException;
 
 class Response implements ResponseInterface
 {
@@ -77,8 +79,8 @@ class Response implements ResponseInterface
          }
 
          // Simple recursive array to XML
-         $xml = new \SimpleXMLElement('<root/>');
-         $toXml = function($data, \SimpleXMLElement &$xmlData) use (&$toXml) {
+         $xml = new SimpleXMLElement('<root/>');
+         $toXml = function($data, SimpleXMLElement &$xmlData) use (&$toXml) {
             foreach( $data as $key => $value ) {
                 if( is_numeric($key) ){
                     $key = 'item'.$key; //binding to generic key name
@@ -112,7 +114,7 @@ class Response implements ResponseInterface
     public function download(string $file, string $name = ''): self
     {
         if (!file_exists($file) || !is_readable($file)) {
-            throw new \RuntimeException("File not found: $file");
+            throw new RuntimeException("File not found: $file");
         }
 
         $filename = $name ?: basename($file);

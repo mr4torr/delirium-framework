@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Delirium\Http\Resolver\Response;
 
+use Delirium\Http\Contract\ResponseInterface;
 use Delirium\Http\Contract\ResponseResolverInterface;
-use Psr\Http\Message\ResponseInterface;
+use Delirium\Http\Enum\ResponseTypeEnum;
+use Delirium\Http\Message\Response;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 
 class DefaultValueResolver implements ResponseResolverInterface
 {
     public function __construct(
-        private \Psr\Http\Message\ResponseFactoryInterface $responseFactory,
-        private \Psr\Http\Message\StreamFactoryInterface $streamFactory
+        private ResponseFactoryInterface $responseFactory,
+        private StreamFactoryInterface $streamFactory
     ) {}
 
     public function supports(mixed $data, ServerRequestInterface $request, array $attributes): bool
@@ -22,24 +27,24 @@ class DefaultValueResolver implements ResponseResolverInterface
 
     public function resolve(mixed $data, ServerRequestInterface $request, array $attributes): ResponseInterface
     {
-        if ($data instanceof \Psr\Http\Message\ResponseInterface) {
+         if ($data instanceof PsrResponseInterface) {
             // Check type default
-            $type = $attributes['type'] ?? \Delirium\Http\Enum\ResponseTypeEnum::JSON;
+            $type = $attributes['type'] ?? ResponseTypeEnum::JSON;
 
-            if ($type === \Delirium\Http\Enum\ResponseTypeEnum::JSON && !$data->hasHeader('Content-Type')) {
+            if ($type === ResponseTypeEnum::JSON && !$data->hasHeader('Content-Type')) {
                  return $data->withHeader('Content-Type', 'application/json');
             }
 
-             return $data instanceof ResponseInterface ? $data : new \Delirium\Http\Message\Response($data, $this->streamFactory);
+             return $data instanceof ResponseInterface ? $data : new Response($data, $this->streamFactory);
         }
 
         $status = isset($attributes['status']) ? (int)$attributes['status'] : 200;
-        $type = $attributes['type'] ?? \Delirium\Http\Enum\ResponseTypeEnum::JSON;
+        $type = $attributes['type'] ?? ResponseTypeEnum::JSON;
 
         $psrResponse = $this->responseFactory->createResponse($status);
-        $response = new \Delirium\Http\Message\Response($psrResponse, $this->streamFactory);
+        $response = new Response($psrResponse, $this->streamFactory);
 
-        if ($type === \Delirium\Http\Enum\ResponseTypeEnum::RAW) {
+        if ($type === ResponseTypeEnum::RAW) {
             return $response->withBody(
                 $this->streamFactory->createStream((string)$this->content($data, false))
             );

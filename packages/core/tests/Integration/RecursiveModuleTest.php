@@ -7,6 +7,7 @@ namespace Delirium\Core\Tests\Integration;
 use Delirium\Core\AppFactory;
 use Delirium\Core\Tests\Fixtures\Hierarchy\RootModule;
 use Delirium\Http\Contract\RouterInterface;
+use Delirium\Http\Router;
 use PHPUnit\Framework\TestCase;
 
 class RecursiveModuleTest extends TestCase
@@ -15,23 +16,23 @@ class RecursiveModuleTest extends TestCase
     {
         $app = AppFactory::create(RootModule::class);
         $container = $app->getContainer();
-        
+
         $this->assertTrue($container->has(RouterInterface::class), 'Router should be registered in container');
-        
+
         /** @var RouterInterface $router */
         $router = $container->get(RouterInterface::class);
-        
+
         // We can inspect the registry if we cast to Router (implementation detail test)
         // Or we can mock a request and attempt dispatch?
         // Since Dispatcher is lazy loaded in Router implementation, maybe dispatching is safer check.
-        
+
         // However, Router implementation is:
         // class Router implements RouterInterface { ... public function getRegistry() ... }
-        
-        if ($router instanceof \Delirium\Http\Router) {
+
+        if ($router instanceof Router) {
             $registry = $router->getRegistry();
             $routes = $registry->getRoutes();
-            
+
             // Expected routes from:
             // RootController: GET /
             // PublicController: GET /public/
@@ -43,10 +44,10 @@ class RecursiveModuleTest extends TestCase
             // /
             // /public/
             // /deep/
-            
+
             $this->assertArrayHasKey('GET', $routes);
             $getRoutes = $routes['GET'];
-            
+
             $this->assertArrayHasKey('/', $getRoutes, 'Root route / should exist');
             $this->assertArrayHasKey('/public', $getRoutes, 'Public route /public should exist');
             $this->assertArrayHasKey('/deep', $getRoutes, 'Deep route /deep should exist');

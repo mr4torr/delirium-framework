@@ -6,9 +6,14 @@ namespace Delirium\Core\Tests\Unit;
 
 use Delirium\Core\AppFactory;
 use Delirium\Core\Application;
+use Delirium\Core\AppOptions;
+use Delirium\Core\Attribute\Module;
+use Delirium\Core\Options\DebugOptions;
+use Delirium\Http\Attribute\Controller; // Added import
 use Delirium\Http\Attribute\MapRequestPayload;
 use Delirium\Http\Attribute\Post;
 use Delirium\Http\Exception\ValidationException;
+use Delirium\Http\Router;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraints as Assert;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -37,11 +42,9 @@ class ValidatedDto
     ) {}
 }
 
-use Delirium\Http\Attribute\Controller; // Added import
-
 // --- Controller ---
 
-#[\Delirium\Http\Attribute\Controller]
+#[Controller]
 class MapPayloadResource
 {
     #[Post('/test/dto')]
@@ -76,7 +79,7 @@ class MapPayloadResource
 
 // --- Test Module ---
 
-#[\Delirium\Core\Attribute\Module(
+#[Module(
     controllers: [MapPayloadResource::class],
     providers: [],
     imports: []
@@ -91,8 +94,8 @@ class MapRequestPayloadTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        $options = new \Delirium\Core\AppOptions(
-            new \Delirium\Core\Options\DebugOptions(debug: true)
+        $options = new AppOptions(
+            new DebugOptions(debug: true)
         );
         self::$app = AppFactory::create(TestPayloadModule::class, $options);
     }
@@ -100,7 +103,7 @@ class MapRequestPayloadTest extends TestCase
     private function dispatch(string $method, string $uri, array $body = []): mixed
     {
         $container = self::$app->getContainer();
-        $router = $container->get(\Delirium\Http\Router::class);
+        $router = $container->get(Router::class);
 
         $psr17Factory = new Psr17Factory();
         $request = $psr17Factory->createServerRequest($method, $uri);

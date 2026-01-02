@@ -4,12 +4,21 @@ declare(strict_types=1);
 
 namespace Delirium\Http\Tests\Integration;
 
-use Delirium\Http\Router;
-use Delirium\Http\RouteRegistry;
 use Delirium\Http\Attribute\Get;
 use Delirium\Http\Contract\ResponseInterface;
+use Delirium\Http\Dispatcher\RegexDispatcher;
+use Delirium\Http\Enum\ResponseTypeEnum;
+use Delirium\Http\Resolver\ArgumentResolverChain;
+use Delirium\Http\Resolver\Request\DefaultValueResolver as RequestDefaultValueResolver;
+use Delirium\Http\Resolver\Response\DefaultValueResolver as ResponseDefaultValueResolver;
+use Delirium\Http\Resolver\Response\JsonResolver;
+use Delirium\Http\Resolver\Response\ResponseResolverChain;
+use Delirium\Http\Resolver\Response\XmlResolver;
+use Delirium\Http\Router;
+use Delirium\Http\RouteRegistry;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
+use SimpleXMLElement;
 
 class XmlResponseTest extends TestCase
 {
@@ -23,21 +32,21 @@ class XmlResponseTest extends TestCase
     private function createConfiguredRouter(): Router
     {
         $registry = new RouteRegistry();
-        $dispatcher = new \Delirium\Http\Dispatcher\RegexDispatcher();
+        $dispatcher = new RegexDispatcher();
 
         $psr17Factory = $this->factory;
 
         // Response Chain - Order matters, mirroring AppFactory
-        $chain = new \Delirium\Http\Resolver\Response\ResponseResolverChain([
-            new \Delirium\Http\Resolver\Response\JsonResolver($psr17Factory, $psr17Factory),
-            new \Delirium\Http\Resolver\Response\XmlResolver($psr17Factory, $psr17Factory),
-            new \Delirium\Http\Resolver\Response\DefaultValueResolver($psr17Factory, $psr17Factory),
+        $chain = new ResponseResolverChain([
+            new JsonResolver($psr17Factory, $psr17Factory),
+            new XmlResolver($psr17Factory, $psr17Factory),
+            new ResponseDefaultValueResolver($psr17Factory, $psr17Factory),
         ]);
         $dispatcher->setResponseResolverChain($chain);
 
         // Request Chain
-        $reqChain = new \Delirium\Http\Resolver\ArgumentResolverChain([
-             new \Delirium\Http\Resolver\Request\DefaultValueResolver(),
+        $reqChain = new ArgumentResolverChain([
+             new RequestDefaultValueResolver(),
         ]);
         $dispatcher->setArgumentResolverChain($reqChain);
 
@@ -52,7 +61,7 @@ class XmlResponseTest extends TestCase
         $router = $this->createConfiguredRouter();
 
         $controller = new class {
-            #[Get(path: '/xmltest', type: \Delirium\Http\Enum\ResponseTypeEnum::XML, status: 201)]
+            #[Get(path: '/xmltest', type: ResponseTypeEnum::XML, status: 201)]
             public function index(): array {
                 return [
                     'home' => 'Olá Mundo',
@@ -73,7 +82,7 @@ class XmlResponseTest extends TestCase
         $this->assertStringStartsWith('<?xml', $body);
 
         // Parse XML to assert value, avoiding encoding mismatch issues (e.g. Olá vs Ol&#xE1;)
-        $xml = new \SimpleXMLElement($body);
+        $xml = new SimpleXMLElement($body);
         $this->assertEquals('Olá Mundo', (string)$xml->home);
     }
 }
