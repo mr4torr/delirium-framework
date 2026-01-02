@@ -6,21 +6,20 @@ namespace Delirium\Http\Resolver;
 
 use Delirium\Http\Contract\ArgumentResolverInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use ReflectionParameter;
 use RuntimeException;
 
 class ArgumentResolverChain
 {
     /**
-     * @var ArgumentResolverInterface[]
+     * @var ArgumentResolverInterface[]|ResponseResolverInterface[]
      */
     private array $resolvers = [];
 
     public function __construct(iterable $resolvers = [])
     {
-        foreach ($resolvers as $resolver) {
-            $this->addResolver($resolver);
-        }
+        $this->resolvers = $resolvers;
     }
 
     public function addResolver(ArgumentResolverInterface $resolver): void
@@ -39,10 +38,11 @@ class ArgumentResolverChain
         return $arguments;
     }
 
-    private function resolveParameter(ServerRequestInterface $request, ReflectionParameter $parameter): mixed
+
+    private function resolveParameter(ServerRequestInterface|ResponseInterface $request, ReflectionParameter $parameter): mixed
     {
         foreach ($this->resolvers as $resolver) {
-            if ($resolver->supports($request, $parameter)) {
+            if ($resolver instanceof ArgumentResolverInterface && $resolver->supports($request, $parameter)) {
                 return $resolver->resolve($request, $parameter);
             }
         }

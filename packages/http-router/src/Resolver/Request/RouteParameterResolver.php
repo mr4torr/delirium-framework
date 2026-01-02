@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Delirium\Http\Resolver;
+namespace Delirium\Http\Resolver\Request;
 
 use Delirium\Http\Contract\ArgumentResolverInterface;
 use Psr\Http\Message\ServerRequestInterface;

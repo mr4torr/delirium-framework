@@ -11,6 +11,11 @@ use Delirium\Http\DependencyInjection\Compiler\RoutePass;
 use Delirium\Http\Router;
 use Delirium\Http\RouteRegistry;
 use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ServerRequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\UploadedFileFactoryInterface;
+use Psr\Http\Message\UriFactoryInterface;
 
 /**
  * Static Factory to bootstrap the application.
@@ -51,6 +56,34 @@ class AppFactory
             $container->setAlias('router', Router::class)->setPublic(true);
             $container->setAlias(RouterInterface::class, Router::class)->setPublic(true);
 
+            // PSR-17 Factories
+            $builder->register(ResponseFactoryInterface::class, \Nyholm\Psr7\Factory\Psr17Factory::class);
+            $builder->register(ServerRequestFactoryInterface::class, \Nyholm\Psr7\Factory\Psr17Factory::class);
+            $builder->register(StreamFactoryInterface::class, \Nyholm\Psr7\Factory\Psr17Factory::class);
+            $builder->register(UploadedFileFactoryInterface::class, \Nyholm\Psr7\Factory\Psr17Factory::class);
+            $builder->register(UriFactoryInterface::class, \Nyholm\Psr7\Factory\Psr17Factory::class);
+
+            // Bind Delirium Contracts to Implementations (where possible)
+            // Note: Request is request-scoped, so usually handled by Resolvers, but we register for completeness/static analysis
+            $builder->register(\Delirium\Http\Contract\ResponseInterface::class, \Delirium\Http\Message\Response::class);
+            // $builder->register(\Delirium\Http\Contract\RequestInterface::class, \Delirium\Http\Message\Request::class);
+
+            // Aliases for functional requirement
+            // Note: These will point to the *services* registered, not magically the active request instance unless that service is proxying or scoped correctly.
+            // But requirement says "->get('request')".
+            // Since we don't have request scope in container yet (Swoole context handles it), we map interface names.
+            // For now, mapping aliases to Interfaces.
+            $container->setAlias('response', \Delirium\Http\Contract\ResponseInterface::class);
+            $container->setAlias('request', ServerRequestFactoryInterface::class); // best guess for now or just generic RequestInterface?
+            // Actually 'request' usually means the Current Request. Without RequestScope in DI, this is tricky.
+            // But per requirement "A chamada ->get('request') retorne uma instância compatível com RequestInterface".
+            // We'll trust the ContainerServiceResolver handles injection in controllers.
+            // But for explicit $container->get(), we need a service.
+            // Let's bind 'response' to ResponseInterface (which is bound to Response class).
+            // 'request' is harder. Assuming it means "Factory" or "Empty Request" if outside context.
+            $builder->register('request', \Delirium\Http\Message\Request::class); // Register class
+            $builder->register('response', \Delirium\Http\Message\Response::class);
+
             // Scan Module
             $visited = [];
             self::scanModule($moduleClass, $builder, $visited);
@@ -73,21 +106,32 @@ class AppFactory
         $dispatcher = new \Delirium\Http\Dispatcher\RegexDispatcher();
         $dispatcher->setContainer($container);
 
-        // validation & hydration
-        $hydrator = new \Delirium\Core\Hydrator\ObjectHydrator();
-        $validator = new \Delirium\Validation\Adapter\SymfonyValidatorAdapter();
-        $payloadResolver = new \Delirium\Core\Resolver\PayloadResolver($hydrator, $validator);
+        // We use Nyholm/Psr7 factory implementation strictly
+        $psr17Factory = new \Nyholm\Psr7\Factory\Psr17Factory();
 
         // Resolver Chain
-        $chain = new \Delirium\Http\Resolver\ArgumentResolverChain([
-            new \Delirium\Http\Resolver\ServerRequestResolver(),
-            new \Delirium\Http\Resolver\RouteParameterResolver(),
-            $payloadResolver, // Feature 006
-            new \Delirium\Http\Resolver\ContainerServiceResolver($container),
-            new \Delirium\Http\Resolver\DefaultValueResolver(),
+        $chainRequest = new \Delirium\Http\Resolver\ArgumentResolverChain([
+            new \Delirium\Http\Resolver\Request\ServerRequestResolver(),
+            new \Delirium\Http\Resolver\Request\RouteParameterResolver(),
+            new \Delirium\Core\Resolver\PayloadResolver(
+                new \Delirium\Core\Hydrator\ObjectHydrator(),
+                new \Delirium\Validation\Adapter\SymfonyValidatorAdapter()
+            ), // Feature 006
+            new \Delirium\Http\Resolver\Request\ContainerServiceResolver($container),
+            new \Delirium\Http\Resolver\Request\ResponseResolver($psr17Factory, $psr17Factory),
+            new \Delirium\Http\Resolver\Request\DefaultValueResolver(),
         ]);
 
-        $dispatcher->setArgumentResolverChain($chain);
+        $chainResponse = new \Delirium\Http\Resolver\Response\ResponseResolverChain([
+            new \Delirium\Http\Resolver\Response\JsonResolver($psr17Factory, $psr17Factory),
+            new \Delirium\Http\Resolver\Response\XmlResolver($psr17Factory, $psr17Factory),
+            new \Delirium\Http\Resolver\Response\StreamResolver($psr17Factory, $psr17Factory),
+            new \Delirium\Http\Resolver\Response\HtmlResolver($psr17Factory, $psr17Factory),
+            new \Delirium\Http\Resolver\Response\DefaultValueResolver($psr17Factory, $psr17Factory),
+        ]);
+
+        $dispatcher->setArgumentResolverChain($chainRequest);
+        $dispatcher->setResponseResolverChain($chainResponse);
         $router->setDispatcher($dispatcher);
 
         // 5. Create Adapter

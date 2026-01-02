@@ -1,19 +1,17 @@
 <!--
 SYNC IMPACT REPORT
-Version: 1.1.0 (Draft)
-Date: 2025-12-20
+Version: 1.3.0 (Minor)
+Date: 2026-01-02
 
 Changes:
-- Bumped version to 1.1.0 (Minor) due to introduction of mandatory Modular Architecture and Attribute utilization.
-- Renamed [PRINCIPLE_5] to "Modular Architecture".
-- Added [PRINCIPLE_6] "Attribute-Driven Meta-Programming".
-- Added "Module" pattern to Structural Patterns.
+- Bumped version to 1.3.0 (Minor) due to introduction of Code Quality Standards principle.
+- Added [PRINCIPLE_8] "Code Quality Standards" enforcing SOLID, DRY, and Object Calisthenics.
 - Updated Governance dates.
 
 Templates Status:
-- .specify/templates/plan-template.md: ✅ Updated
-- .specify/templates/spec-template.md: ✅ (Generic)
-- .specify/templates/tasks-template.md: ✅ Updated
+- .specify/templates/plan-template.md: ✅ Verified
+- .specify/templates/spec-template.md: ✅ Verified (No Change Required)
+- .specify/templates/tasks-template.md: ✅ Verified
 
 TODOs:
 - None.
@@ -26,7 +24,7 @@ TODOs:
 
 ### I. Swoole-First & Async Native
 
-Delirium Framework is explicitly built **for** Swoole. We embrace the event-driven, non-blocking I/O nature of the runtime.
+Delirium Framework is specifically built **for** Swoole. We embrace the event-driven, non-blocking I/O nature of the runtime.
 - **Async by Default:** All I/O operations (database, network, file system) must use coroutine-friendly libraries. Blocking code in the main reactor loop is strictly prohibited.
 - **Long-Running Process:** The application boots once. Static properties and global states persist across requests. Developers must unlearn "request lifecycle = process lifecycle".
 - **Coroutine Context:** Request-scoped data must be isolated using `Swoole\Context` to prevent data leaks between concurrent requests.
@@ -64,6 +62,19 @@ The application is structured as a graph of Modules, inspired by NestJS.
 We leverage PHP 8 Attributes to keep configuration close to code, reducing boilerplate files.
 - **Declarative Metadata:** Use Attributes for Routing (`@Get`, `@Post`), Dependency Injection (`@Inject`), and Validation.
 - **Reflection:** The framework reads these attributes at boot time to build the execution graph.
+
+### VII. Mandatory Testing Discipline
+Quality is not an afterthought; it is intrinsic to the creation process.
+- **Test-on-Creation:** Every new class, method, or file added to the codebase MUST be accompanied by a corresponding Unit or Integration Test.
+- **No Untested Code:** Pull Requests or Commits introducing new features without tests are constitutionally invalid.
+- **Coverage:** Tests must verify the success path, failure paths, and edge cases.
+
+### VIII. Code Quality Standards
+Code generation and implementation must adhere to recognized craftsmanship standards to ensure long-term maintainability.
+- **SOLID Principles:** All code must respect Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion.
+- **DRY (Don't Repeat Yourself):** Abstractions should be created to avoid code duplication, provided they do not introduce accidental coupling.
+- **Object Calisthenics:** Follow best practices for object-oriented design (e.g., keep methods small, minimize indentation levels, avoid getter/setter abuse where rich domain models are possible).
+- **Refactoring Guru:** Design implementation must align with the canonical examples and structures provided by [Refactoring Guru](https://refactoring.guru/design-patterns).
 
 ## Design Patterns Architecture
 
@@ -121,6 +132,7 @@ Delirium Framework strictly follows PHP Standard Recommendations (PSRs) to ensur
 ### Testing Strategy
 - **Unit Tests:** Must test logic in isolation (mocking I/O).
 - **Integration Tests:** Must run inside a Swoole environment to verify coroutine compatibility and memory behavior.
+- **Enforcement:** See Principle VII.
 
 ## Governance
 This Constitution is the highest law of the Delirium Framework development.
@@ -128,4 +140,4 @@ This Constitution is the highest law of the Delirium Framework development.
 - **Enforcement:** Code reviews must explicitly verify adherence to "Swoole-First" and "Design Patterns" principals. Non-compliant code (e.g., blocking I/O) will be rejected immediately.
 - **Communication:** Whenever you communicate in the chat, please communicate in Portuguese (Brazil).
 
-**Version:** 1.1.0 | **Ratified:** 2025-12-20 | **Last Amended:** 2025-12-20
+**Version:** 1.3.0 | **Ratified:** 2025-12-20 | **Last Amended:** 2026-01-02

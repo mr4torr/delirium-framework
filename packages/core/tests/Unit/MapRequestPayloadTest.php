@@ -101,37 +101,37 @@ class MapRequestPayloadTest extends TestCase
     {
         $container = self::$app->getContainer();
         $router = $container->get(\Delirium\Http\Router::class);
-        
+
         $psr17Factory = new Psr17Factory();
         $request = $psr17Factory->createServerRequest($method, $uri);
         $request->getBody()->write(json_encode($body));
         $request->getBody()->rewind();
-        
+
         return $router->dispatch($request);
     }
 
     public function testDtoMapping(): void
     {
         $response = $this->dispatch('POST', '/test/dto', ['name' => 'Alice', 'age' => 30]);
-        $this->assertEquals(['name' => 'Alice', 'age' => 30], $response);
+        $this->assertEquals(['name' => 'Alice', 'age' => 30], json_decode((string)$response->getBody(), true));
     }
 
     public function testLooseMapping(): void
     {
         $response = $this->dispatch('POST', '/test/dto', ['name' => 'Bob', 'age' => 40, 'extra' => 'ignore']);
-        $this->assertEquals(['name' => 'Bob', 'age' => 40], $response);
+        $this->assertEquals(['name' => 'Bob', 'age' => 40], json_decode((string)$response->getBody(), true));
     }
 
     public function testEntityMapping(): void
     {
         $response = $this->dispatch('POST', '/test/entity', ['name' => 'Widget', 'price' => 19.99]);
-        $this->assertEquals(['name' => 'Widget', 'price' => 19.99], $response);
+        $this->assertEquals(['name' => 'Widget', 'price' => 19.99], json_decode((string)$response->getBody(), true));
     }
 
     public function testMixedUsage(): void
     {
         $response = $this->dispatch('POST', '/test/mixed/123', ['name' => 'Charlie', 'age' => 25]);
-        $this->assertEquals(['id' => '123', 'name' => 'Charlie'], $response);
+        $this->assertEquals(['id' => '123', 'name' => 'Charlie'], json_decode((string)$response->getBody(), true));
     }
 
     public function testValidationFailure(): void
@@ -143,6 +143,6 @@ class MapRequestPayloadTest extends TestCase
     public function testValidationSuccess(): void
     {
         $response = $this->dispatch('POST', '/test/validated', ['email' => 'test@example.com']);
-        $this->assertEquals(['email' => 'test@example.com'], $response);
+        $this->assertEquals(['email' => 'test@example.com'], json_decode((string)$response->getBody(), true));
     }
 }
