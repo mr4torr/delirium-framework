@@ -16,8 +16,10 @@ class RouteCachingTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->cacheFile = dirname(__DIR__, 4) . '/var/cache/http-routes.php';
-        $this->diCacheFile = dirname(__DIR__, 4) . '/var/cache/dependency-injection.php';
+        $this->cacheFile = getcwd() . '/var/cache/http-routes.php';
+        $this->diCacheFile = getcwd() . '/var/cache/dependency-injection.php';
+        // $this->cacheFile = dirname(__DIR__, 4) . '/var/cache/http-routes.php';
+        // $this->diCacheFile = dirname(__DIR__, 4) . '/var/cache/dependency-injection.php';
         
         // Clean up
         if (file_exists($this->cacheFile)) unlink($this->cacheFile);

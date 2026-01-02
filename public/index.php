@@ -2,29 +2,11 @@
 
 declare(strict_types=1);
 
-use Delirium\Core\AppFactory;
+require __DIR__ . '/../vendor/autoload.php';
 
-// Bootstrap simple
-use Delirium\Core\AppOptions;
-use Delirium\Core\Options\DebugOptions;
-
-// Default Bootstrap
-return AppFactory::create(App\AppModule::class, new AppOptions(
-    new DebugOptions(debug: true, liveReload: true)
-));
-
-
-
-// use Delirium\Core\AppOptions;
-// use Delirium\Core\Options\CorsOptions;
-// use Delirium\Core\Options\DebugOptions;
-
-// Bootstrap with options
-// AppFactory::create(App\AppModule::class, new AppOptions(
-//     new DebugOptions(debug: true)
-//     new CorsOptions(
-//         allowOrigins: ['*'],
-//         allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//         allowHeaders: ['Content-Type', 'Authorization']
-//     )
-// ))->listen(9501);
+Delirium\Core\AppFactory::create(
+    App\AppModule::class,
+    new Delirium\Core\AppOptions(
+        new Delirium\Core\Options\DebugOptions(debug: true),
+    )
+)->listen();

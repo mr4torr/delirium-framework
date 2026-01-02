@@ -30,8 +30,8 @@ class AppFactory
         $appOptions = $options ?? new AppOptions();
 
         // 2. Initialize Container (Cached or New)
-        $cacheFile = dirname(__DIR__, 3) . '/var/cache/dependency-injection.php';
-        
+        $cacheFile = getcwd() . '/var/cache/dependency-injection.php';
+
         $debugOptions = $appOptions->get(Options\DebugOptions::class);
         $debug = $debugOptions ? $debugOptions->debug : false;
 
@@ -42,12 +42,12 @@ class AppFactory
             $container = new \Delirium\DI\Cache\ProjectServiceContainer();
         } else {
             $builder = new ContainerBuilder();
-            $container = $builder->getInnerBuilder();            
+            $container = $builder->getInnerBuilder();
             $container->addCompilerPass(new RoutePass());
-            
+
             $builder->register(RouteRegistry::class, RouteRegistry::class);
             $builder->register(Router::class, Router::class);
-                        
+
             $container->setAlias('router', Router::class)->setPublic(true);
             $container->setAlias(RouterInterface::class, Router::class)->setPublic(true);
 
@@ -57,10 +57,11 @@ class AppFactory
 
             // Build and Dump
             $builder->build($debug ? 'dev' : 'prod'); // env
+
             if(!$debug) {
-                $builder->dump($cacheFile);                
+                $builder->dump($cacheFile);
             }
-            
+
             /** @var ContainerInterface */
             $container = $builder->getInnerBuilder();
         }
@@ -88,7 +89,7 @@ class AppFactory
 
         $dispatcher->setArgumentResolverChain($chain);
         $router->setDispatcher($dispatcher);
-    
+
         // 5. Create Adapter
         // We use Nyholm/Psr7 factory implementation strictly
         $psr17Factory = new \Nyholm\Psr7\Factory\Psr17Factory();
