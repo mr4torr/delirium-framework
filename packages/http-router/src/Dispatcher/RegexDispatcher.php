@@ -111,29 +111,38 @@ class RegexDispatcher implements DispatcherInterface
     {
         if (is_array($handler) && count($handler) === 2) {
             [$class, $method] = $handler;
-            /** @var string $class */
-            $class = (string) $class;
 
             $instance = null;
-            if ($this->container && $this->container->has($class)) {
-                $instance = $this->container->get($class);
-            } elseif (class_exists($class)) {
-                // Fallback if not in container but exists (e.g. simple controller)
-                // Though with DI we prefer container use.
-                // However, constructor injection relies on container.
-                // If class exists but not in container, simple new() might fail dependencies.
-                // US4 Implicit Registration implies it should be in container or auto-wired.
-                // If it's not in container, we try new() but if it has deps it fails.
-                $instance = new $class();
+            if (is_object($class)) {
+                $instance = $class;
+                $class = get_class($instance);
             } else {
-                 throw new \RuntimeException("Controller class '$class' not found.");
+                /** @var string $class */
+                $class = (string) $class;
+                if ($this->container && $this->container->has($class)) {
+                    $instance = $this->container->get($class);
+                } elseif (class_exists($class)) {
+                    $instance = new $class();
+                } else {
+                     throw new \RuntimeException("Controller class '$class' not found.");
+                }
             }
 
             return $this->invokeWithReflection($instance, $method, $params, $request);
         }
 
         if (is_callable($handler)) {
-            return $handler(...$params);
+            $results = $handler(...$params);
+
+            // We need to resolve this result too!
+            // Attributes for closure? Closures can have attributes in PHP 8.
+            $routeConfig = [];
+            // Try to reflect on closure to get attributes?
+            // $refFunction = new \ReflectionFunction($handler);
+            // $attributes = $refFunction->getAttributes(); ...
+            // keeping it simple for now, generic resolution.
+
+            return $this->getResponseResolverChain()->resolve($results, $request ?? new \Nyholm\Psr7\ServerRequest('GET', '/'), []);
         }
 
         throw new \RuntimeException("Invalid handler");
@@ -171,28 +180,22 @@ class RegexDispatcher implements DispatcherInterface
     }
 
 
-    private ?\Delirium\Http\Resolver\ArgumentResolverChain $responseResolverChain = null;
+    private ?\Delirium\Http\Resolver\Response\ResponseResolverChain $responseResolverChain = null;
 
-    public function setResponseResolverChain(\Delirium\Http\Resolver\ArgumentResolverChain $chain): void
+    public function setResponseResolverChain(\Delirium\Http\Resolver\Response\ResponseResolverChain $chain): void
     {
         $this->responseResolverChain = $chain;
     }
 
-    /**
-     * TODO: Fazer com que essa função seja um arquivos de configuração que permite definir as classes Resolver (Middleware)
-     * @return \Delirium\Http\Resolver\ArgumentResolverChain|null
-     */
-    private function getResponseResolverChain(): \Delirium\Http\Resolver\ArgumentResolverChain
+    private function getResponseResolverChain(): \Delirium\Http\Resolver\Response\ResponseResolverChain
     {
         if ($this->responseResolverChain !== null) {
             return $this->responseResolverChain;
         }
 
-        $resolvers = [];
-
-        $resolvers[] = new \Delirium\Http\Resolver\Response\DefaultValueResolver();
-
-        return $this->responseResolverChain = new \Delirium\Http\Resolver\ArgumentResolverChain($resolvers);
+        // Fallback or throws? Ideally injected.
+        // We'll create minimal chain if possibly but dependencies make it hard.
+        throw new \RuntimeException("ResponseResolverChain not configured.");
     }
 
     private function invokeWithReflection(object $instance, string $method, array $params, ?ServerRequestInterface $request): mixed
@@ -201,23 +204,46 @@ class RegexDispatcher implements DispatcherInterface
 
         // Ensure request has route params as attributes for RouteParameterResolver
         if ($request && !empty($params)) {
-            foreach ($params as $key => $value) {
-                $request = $request->withAttribute((string)$key, $value);
-            }
+             foreach ($params as $key => $value) {
+                 $request = $request->withAttribute((string)$key, $value);
+             }
         }
-
-        // If request is null (shouldn't happen in dispatch, but for safety), create a dummy or handle constraints?
-        // The dispatch method always passes request.
 
         if (!$request) {
             throw new \RuntimeException("Request object is required for argument resolution.");
         }
 
+        // Request Resolution (Args)
         $args = $this->getRequestResolverChain()->resolveArguments($request, $refMethod->getParameters());
 
+        // Execute Controller
         $results =  $refMethod->invokeArgs($instance, $args);
 
-        $response = new Response(200, []);
-        return $this->getResponseResolverChain()->resolveResults($response, $results);
+        // Extract Route Attributes (e.g., #[Get(type: 'json', status: 201)])
+        // We look for Attributes that have 'type' or 'status' properties?
+        // Or strictly Delirium Route attributes.
+        // We'll assume attributes extending Delirium\Core\Attribute\Route or similar,
+        // but for now we look for attributes with getArguments?
+        // Actually, we can just get all attributes and merge arguments?
+        // Specifically we care about the route definition.
+
+        $attributes = $refMethod->getAttributes();
+        $routeConfig = [];
+
+        foreach ($attributes as $attribute) {
+             // We could filter by Route Attribute class if we knew the base class specific to this context.
+             // Assuming \Delirium\Http\Attribute\Route match.
+             // For generic usage, we check if instance has 'type' or 'status'.
+             $inst = $attribute->newInstance();
+             if (property_exists($inst, 'type')) {
+                 $routeConfig['type'] = $inst->type;
+             }
+             if (property_exists($inst, 'status')) {
+                 $routeConfig['status'] = $inst->status;
+             }
+        }
+
+        // Response Resolution (Result)
+        return $this->getResponseResolverChain()->resolve($results, $request, $routeConfig);
     }
 }
