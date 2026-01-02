@@ -73,21 +73,24 @@ class AppFactory
         $dispatcher = new \Delirium\Http\Dispatcher\RegexDispatcher();
         $dispatcher->setContainer($container);
 
-        // validation & hydration
-        $hydrator = new \Delirium\Core\Hydrator\ObjectHydrator();
-        $validator = new \Delirium\Validation\Adapter\SymfonyValidatorAdapter();
-        $payloadResolver = new \Delirium\Core\Resolver\PayloadResolver($hydrator, $validator);
-
         // Resolver Chain
-        $chain = new \Delirium\Http\Resolver\ArgumentResolverChain([
-            new \Delirium\Http\Resolver\ServerRequestResolver(),
-            new \Delirium\Http\Resolver\RouteParameterResolver(),
-            $payloadResolver, // Feature 006
-            new \Delirium\Http\Resolver\ContainerServiceResolver($container),
-            new \Delirium\Http\Resolver\DefaultValueResolver(),
+        $chainRequest = new \Delirium\Http\Resolver\ArgumentResolverChain([
+            new \Delirium\Http\Resolver\Request\ServerRequestResolver(),
+            new \Delirium\Http\Resolver\Request\RouteParameterResolver(),
+            new \Delirium\Core\Resolver\PayloadResolver(
+                new \Delirium\Core\Hydrator\ObjectHydrator(),
+                new \Delirium\Validation\Adapter\SymfonyValidatorAdapter()
+            ), // Feature 006
+            new \Delirium\Http\Resolver\Request\ContainerServiceResolver($container),
+            new \Delirium\Http\Resolver\Request\DefaultValueResolver(),
         ]);
 
-        $dispatcher->setArgumentResolverChain($chain);
+        $chainResponse = new \Delirium\Http\Resolver\ArgumentResolverChain([
+            new \Delirium\Http\Resolver\Response\DefaultValueResolver(),
+        ]);
+
+        $dispatcher->setArgumentResolverChain($chainRequest);
+        $dispatcher->setResponseResolverChain($chainResponse);
         $router->setDispatcher($dispatcher);
 
         // 5. Create Adapter

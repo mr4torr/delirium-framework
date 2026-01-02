@@ -7,6 +7,7 @@ namespace Delirium\Http\Dispatcher;
 use Delirium\Http\Contract\DispatcherInterface;
 use Delirium\Http\Exception\MethodNotAllowedException;
 use Delirium\Http\Exception\RouteNotFoundException;
+use Nyholm\Psr7\Response;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Container\ContainerInterface;
 
@@ -16,7 +17,7 @@ class RegexDispatcher implements DispatcherInterface
      * @var array<string, array<string, mixed>> [method => [route_pattern => handler]]
      */
     private array $staticRoutes = [];
-    
+
     /**
      * @var array<string, array<string, mixed, array>> [method => [[regex, handler, paramNames]]]
      */
@@ -25,7 +26,7 @@ class RegexDispatcher implements DispatcherInterface
     public function addRoute(string $method, string $path, mixed $handler): void
     {
         $method = strtoupper($method);
-        
+
         // Check for parameters {name}
         if (str_contains($path, '{')) {
             $this->addDynamicRoute($method, $path, $handler);
@@ -40,9 +41,9 @@ class RegexDispatcher implements DispatcherInterface
         // Also escape other characters
         $pattern = preg_replace('/\{(\w+)\}/', '(?P<$1>[^/]+)', $path);
         $pattern = '#^' . $pattern . '$#';
-        
+
         // Extract param names explicitly if needed, but (?P<name>) handles it in matches.
-        
+
         $this->dynamicRoutes[$method][] = [
             'regex' => $pattern,
             'handler' => $handler
@@ -60,28 +61,28 @@ class RegexDispatcher implements DispatcherInterface
     {
         $method = $request->getMethod();
         $path = $request->getUri()->getPath();
-        
+
         // 1. Static Match
         if (isset($this->staticRoutes[$method][$path])) {
             return $this->executeHandler($this->staticRoutes[$method][$path], [], $request);
         }
-        
+
         // 2. Dynamic Match
         if (isset($this->dynamicRoutes[$method])) {
             foreach ($this->dynamicRoutes[$method] as $route) {
                 if (preg_match($route['regex'], $path, $matches)) {
                     // Filter integer keys
                     $params = array_filter($matches, fn($key) => !is_int($key), ARRAY_FILTER_USE_KEY);
-                    
+
                     foreach ($params as $key => $value) {
                         $request = $request->withAttribute((string)$key, $value);
                     }
-                    
+
                     return $this->executeHandler($route['handler'], $params, $request);
                 }
             }
         }
-        
+
         // 3. 404 Not Found or 405 Method Not Allowed
         $allowedMethods = [];
         foreach ($this->staticRoutes as $m => $routes) {
@@ -98,7 +99,7 @@ class RegexDispatcher implements DispatcherInterface
                 }
             }
         }
-        
+
         if (!empty($allowedMethods)) {
             throw new MethodNotAllowedException("Method $method not allowed. Allowed: " . implode(', ', array_unique($allowedMethods)));
         }
@@ -112,7 +113,7 @@ class RegexDispatcher implements DispatcherInterface
             [$class, $method] = $handler;
             /** @var string $class */
             $class = (string) $class;
-            
+
             $instance = null;
             if ($this->container && $this->container->has($class)) {
                 $instance = $this->container->get($class);
@@ -127,48 +128,77 @@ class RegexDispatcher implements DispatcherInterface
             } else {
                  throw new \RuntimeException("Controller class '$class' not found.");
             }
-            
+
             return $this->invokeWithReflection($instance, $method, $params, $request);
         }
-        
+
         if (is_callable($handler)) {
-            return $handler(...$params); 
+            return $handler(...$params);
         }
-        
+
         throw new \RuntimeException("Invalid handler");
     }
-    
-    private ?\Delirium\Http\Resolver\ArgumentResolverChain $resolverChain = null;
+
+    private ?\Delirium\Http\Resolver\ArgumentResolverChain $requestResolverChain = null;
 
     public function setArgumentResolverChain(\Delirium\Http\Resolver\ArgumentResolverChain $chain): void
     {
-        $this->resolverChain = $chain;
+        $this->requestResolverChain = $chain;
     }
 
-    private function getResolverChain(): \Delirium\Http\Resolver\ArgumentResolverChain
+    /**
+     * TODO: Fazer com que essa função seja um arquivos de configuração que permite definir as classes Resolver (Middleware)
+     * @return \Delirium\Http\Resolver\ArgumentResolverChain|null
+     */
+    private function getRequestResolverChain(): \Delirium\Http\Resolver\ArgumentResolverChain
     {
-        if ($this->resolverChain !== null) {
-            return $this->resolverChain;
+        if ($this->requestResolverChain !== null) {
+            return $this->requestResolverChain;
         }
 
         $resolvers = [
-            new \Delirium\Http\Resolver\ServerRequestResolver(),
-            new \Delirium\Http\Resolver\RouteParameterResolver(),
+            new \Delirium\Http\Resolver\Request\ServerRequestResolver(),
+            new \Delirium\Http\Resolver\Request\RouteParameterResolver(),
         ];
 
         if ($this->container) {
-            $resolvers[] = new \Delirium\Http\Resolver\ContainerServiceResolver($this->container);
+            $resolvers[] = new \Delirium\Http\Resolver\Request\ContainerServiceResolver($this->container);
         }
 
-        $resolvers[] = new \Delirium\Http\Resolver\DefaultValueResolver();
+        $resolvers[] = new \Delirium\Http\Resolver\Request\DefaultValueResolver();
 
-        return $this->resolverChain = new \Delirium\Http\Resolver\ArgumentResolverChain($resolvers);
+        return $this->requestResolverChain = new \Delirium\Http\Resolver\ArgumentResolverChain($resolvers);
+    }
+
+
+    private ?\Delirium\Http\Resolver\ArgumentResolverChain $responseResolverChain = null;
+
+    public function setResponseResolverChain(\Delirium\Http\Resolver\ArgumentResolverChain $chain): void
+    {
+        $this->responseResolverChain = $chain;
+    }
+
+    /**
+     * TODO: Fazer com que essa função seja um arquivos de configuração que permite definir as classes Resolver (Middleware)
+     * @return \Delirium\Http\Resolver\ArgumentResolverChain|null
+     */
+    private function getResponseResolverChain(): \Delirium\Http\Resolver\ArgumentResolverChain
+    {
+        if ($this->responseResolverChain !== null) {
+            return $this->responseResolverChain;
+        }
+
+        $resolvers = [];
+
+        $resolvers[] = new \Delirium\Http\Resolver\Response\DefaultValueResolver();
+
+        return $this->responseResolverChain = new \Delirium\Http\Resolver\ArgumentResolverChain($resolvers);
     }
 
     private function invokeWithReflection(object $instance, string $method, array $params, ?ServerRequestInterface $request): mixed
     {
         $refMethod = new \ReflectionMethod($instance, $method);
-        
+
         // Ensure request has route params as attributes for RouteParameterResolver
         if ($request && !empty($params)) {
             foreach ($params as $key => $value) {
@@ -178,14 +208,16 @@ class RegexDispatcher implements DispatcherInterface
 
         // If request is null (shouldn't happen in dispatch, but for safety), create a dummy or handle constraints?
         // The dispatch method always passes request.
-        
+
         if (!$request) {
             throw new \RuntimeException("Request object is required for argument resolution.");
         }
 
-        $resolverChain = $this->getResolverChain();
-        $args = $resolverChain->resolveArguments($request, $refMethod->getParameters());
-        
-        return $refMethod->invokeArgs($instance, $args);
+        $args = $this->getRequestResolverChain()->resolveArguments($request, $refMethod->getParameters());
+
+        $results =  $refMethod->invokeArgs($instance, $args);
+
+        $response = new Response(200, []);
+        return $this->getResponseResolverChain()->resolveResults($response, $results);
     }
 }
