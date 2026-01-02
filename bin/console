@@ -1,0 +1,45 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require getcwd() . '/vendor/autoload.php';
+// require getcwd() . '/config/bootstrap.php';
+
+// use Delirium\Core\Application;
+use Delirium\Core\Console\Kernel;
+
+// $publicIndex = '/public/index.php';
+// $optionFile = '--file=';
+
+// if (in_array($argv[1], ['server:start', 'server:watch'])) {
+//     $publicIndexArgs = array_filter($argv, fn ($arg) => str_starts_with($arg, $optionFile));
+//     if ($publicIndexArgs) {
+//         $publicIndexKey = key($publicIndexArgs);
+//         $publicIndex = substr($argv[$publicIndexKey], strlen($optionFile));
+
+//         unset($argv[$publicIndexKey]);
+
+//         $_SERVER['argv'] = $argv;
+//         $GLOBALS['argv'] = $argv;
+//         $argc = count($argv);
+//         $_SERVER['argc'] = $argc;
+//         $GLOBALS['argc'] = $argc;
+
+//         $argv = array_values($argv);
+//     }
+// }
+
+// $app = require getcwd() . '/' . ltrim($publicIndex, '/');
+
+// if (!$app instanceof Application) {
+//     echo "Error: public/index.php did not return an Application instance.\n";
+//     exit(1);
+// }
+
+// 2. Wrap in Console Kernel
+$kernel = new Kernel();
+// $kernel = new Kernel($app);
+
+// 3. Run
+exit($kernel->run());

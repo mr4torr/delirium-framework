@@ -10,7 +10,8 @@
     },
     "require": {
         "php": ">=8.4",
-        "delirium/core": "*"
+        "delirium/core": "*",
+        "symfony/console": "^8.0"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

@@ -21,4 +21,11 @@ interface ApplicationInterface
      * @return \Psr\Container\ContainerInterface
      */
     public function getContainer();
+
+    /**
+     * Shutdown the application server.
+     *
+     * @return void
+     */
+    public function shutdown(): void;
 }

@@ -23,7 +23,8 @@
         "psr/container": "^2.0",
         "symfony/dependency-injection": "^8.0",
         "symfony/config": "^8.0",
-        "nyholm/psr7": "^1.8"
+        "nyholm/psr7": "^1.8",
+        "symfony/console": "^8.0"
     },
     "scripts": {
         "test": "vendor/bin/phpunit"
