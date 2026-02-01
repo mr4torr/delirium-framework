@@ -15,6 +15,6 @@ class MapRequestPayload
      */
     public function __construct(
         public array $serializationContext = [],
-        public array $validationGroups = []
+        public array $validationGroups = [],
     ) {}
 }

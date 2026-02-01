@@ -10,10 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(
-    name: 'server:start',
-    description: 'Start the application server'
-)]
+#[AsCommand(name: 'server:start', description: 'Start the application server')]
 class ServerCommand extends Command
 {
     protected function configure(): void
@@ -51,7 +48,7 @@ class ServerCommand extends Command
 
         $fileStart = getcwd() . '/' . ltrim($input->getOption('file'), '/');
 
-        if(!file_exists($fileStart)) {
+        if (!file_exists($fileStart)) {
             $output->writeln("<error>File {$fileStart} does not exist.</error>");
             return Command::FAILURE;
         }
@@ -70,13 +67,11 @@ class ServerCommand extends Command
     //     }
     //     return false;
     // }
-
     // private function killProcessOnPort(int $port): bool
     // {
     //     // Try fuser
     //     exec("fuser -k -n tcp {$port} 2>&1", $output, $returnVar);
     //     if ($returnVar === 0) return true;
-
     //     // Try lsof + kill
     //     $pid = trim(shell_exec("lsof -t -i:{$port} -sTCP:LISTEN") ?? '');
     //     if (!empty($pid) && is_numeric($pid)) {
@@ -84,7 +79,6 @@ class ServerCommand extends Command
     //          exec('pkill -9 -f "bin/console"');
     //          return true;
     //     }
-
     //     return false;
     // }
 }

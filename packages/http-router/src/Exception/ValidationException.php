@@ -11,9 +11,9 @@ class ValidationException extends RuntimeException implements JsonSerializable
 {
     public function __construct(
         private array $errors,
-        string $message = "Bad Request",
+        string $message = 'Bad Request',
         int $code = 400,
-        ?\Throwable $previous = null
+        ?\Throwable $previous = null,
     ) {
         parent::__construct($message, $code, $previous);
     }

@@ -30,7 +30,7 @@ class DiscoveryPass implements CompilerPassInterface
         }
 
         // 2. BFS to discover dependencies
-        while (!empty($queue)) {
+        while ($queue !== []) {
             $class = array_shift($queue);
 
             if (isset($scanned[$class])) {
@@ -63,17 +63,18 @@ class DiscoveryPass implements CompilerPassInterface
             // B. Property Dependencies (#[Inject])
             foreach ($ref->getProperties() as $property) {
                 $attributes = $property->getAttributes(Inject::class);
-                if (!empty($attributes)) {
+                if ($attributes !== []) {
                     // Check explicit serviceId
                     $attr = $attributes[0]->newInstance();
                     if ($attr->serviceId) {
-                         $dependencies[] = $attr->serviceId;
-                    } else {
-                        // Infer from type
-                        $type = $property->getType();
-                        if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
-                            $dependencies[] = $type->getName();
-                        }
+                        $dependencies[] = $attr->serviceId;
+                        continue;
+                    }
+
+                    // Infer from type
+                    $type = $property->getType();
+                    if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
+                        $dependencies[] = $type->getName();
                     }
                 }
             }
@@ -81,35 +82,37 @@ class DiscoveryPass implements CompilerPassInterface
             // C. Route Method Dependencies (Controllers)
             if (str_ends_with($class, 'Controller')) {
                 foreach ($ref->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-                     foreach ($method->getParameters() as $param) {
+                    foreach ($method->getParameters() as $param) {
                         $type = $param->getType();
                         if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
                             $dependencies[] = $type->getName();
                         }
-                     }
+                    }
                 }
             }
 
             // Process dependencies
             foreach ($dependencies as $depClass) {
                 // Determine if valid class
-                if (class_exists($depClass) || interface_exists($depClass)) {
-                     // Check if it's the ContainerInterface itself, which we aliased manually
-                     if ($depClass === PsrContainerInterface::class || $depClass === SymfonyContainerInterface::class) {
-                         continue;
-                     }
+                if (!(class_exists($depClass) || interface_exists($depClass))) {
+                    continue;
+                }
 
-                     if (!$container->has($depClass) && !$container->hasDefinition($depClass)) {
-                        // Register it!
-                        // echo "Implicitly registering: $depClass (found in $class)\n";
-                        $container->register($depClass, $depClass)
-                            ->setAutowired(true)
-                            ->setAutoconfigured(true)
-                            ->setPublic(true);
+                if ($depClass === PsrContainerInterface::class || $depClass === SymfonyContainerInterface::class) {
+                    continue;
+                }
 
-                        // Add to queue to scan ITS dependencies
-                        $queue[] = $depClass;
-                    }
+                if (!$container->has($depClass) && !$container->hasDefinition($depClass)) {
+                    // Register it!
+                    // echo "Implicitly registering: $depClass (found in $class)\n";
+                    $container
+                        ->register($depClass, $depClass)
+                        ->setAutowired(true)
+                        ->setAutoconfigured(true)
+                        ->setPublic(true);
+
+                    // Add to queue to scan ITS dependencies
+                    $queue[] = $depClass;
                 }
             }
         }

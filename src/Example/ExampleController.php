@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Example;
 
+use App\Example\GreetingService;
 use Delirium\Http\Attribute\Controller;
 use Delirium\Http\Attribute\Get;
-use App\Example\GreetingService;
-use Psr\Container\ContainerInterface;
 
 // Example Controller
 #[Controller('/')]
 class ExampleController
 {
     public function __construct(
-        private GreetingService $greeter
+        private GreetingService $greeter,
     ) {}
 
     #[Get]
@@ -26,6 +25,6 @@ class ExampleController
     #[Get('/inject/{name}')]
     public function methodInjection(string $name, GreetingService $svc): string
     {
-        return "Method Injection: " . $svc->greet($name);
+        return 'Method Injection: ' . $svc->greet($name);
     }
 }

@@ -28,9 +28,10 @@ class Application implements ApplicationInterface
         private ContainerInterface $container,
         private AppOptions $options,
         private RouterInterface $router,
-        private ContextAdapterInterface $adapter
+        private ContextAdapterInterface $adapter,
     ) {
-        $this->serverOptions = $options->get(ServerOptions::class) ?: new ServerOptions();
+        $opts = $options->get(ServerOptions::class);
+        $this->serverOptions = $opts instanceof ServerOptions ? $opts : new ServerOptions();
     }
 
     public function listen(int $port = 9501, string $host = '0.0.0.0'): void
@@ -53,7 +54,7 @@ class Application implements ApplicationInterface
     private function configureServer(Server $server): void
     {
         $server->set($this->serverOptions->toArray());
-        $server->on('Start', function (Server $server) {
+        $server->on('Start', static function (Server $server) {
             echo "[Swoole] Http server started at http://{$server->host}:{$server->port}\n";
         });
 
@@ -89,23 +90,26 @@ class Application implements ApplicationInterface
 
             if ($result instanceof ResponseInterface) {
                 $this->adapter->emitToSwoole($result, $response);
-            } elseif (is_string($result)) {
-                $response->end($result);
-            } else {
-                 $response->header('Content-Type', 'application/json');
-                 $response->end(json_encode($result));
+                return;
             }
 
+            if (is_string($result)) {
+                $response->end($result);
+                return;
+            }
+
+            $response->header('Content-Type', 'application/json');
+            $response->end(json_encode($result));
         } catch (RouteNotFoundException $e) {
             $response->status(404);
             $response->end('Not Found');
         } catch (MethodNotAllowedException $e) {
-             $response->status(405);
-             $response->end('Method Not Allowed');
+            $response->status(405);
+            $response->end('Method Not Allowed');
         } catch (ValidationException $e) {
-             $response->status($e->getCode());
-             $response->header('Content-Type', 'application/json');
-             $response->end(json_encode($e));
+            $response->status($e->getCode());
+            $response->header('Content-Type', 'application/json');
+            $response->end(json_encode($e));
         } catch (Throwable $e) {
             $response->status(500);
             $response->end('Internal Server Error: ' . $e->getMessage());

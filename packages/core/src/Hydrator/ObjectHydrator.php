@@ -33,11 +33,16 @@ class ObjectHydrator
 
                 if (array_key_exists($name, $data)) {
                     $constructorArgs[$name] = $data[$name];
-                    // TODO: Basic type coercion or check?
+
+                    // TODO(@mr4torr): Basic type coercion or check?
                     // For now, strict types in invocation will catch errors, or we rely on loose types.
-                } elseif ($param->isDefaultValueAvailable()) {
+                    continue;
+                }
+
+                if ($param->isDefaultValueAvailable()) {
                     $constructorArgs[$name] = $param->getDefaultValue();
                 }
+
                 // Else: if required and missing, PHP will throw generic ArgumentCountError on invoke.
                 // We could catch it and throw a clearer HydrationException.
             }
@@ -53,10 +58,9 @@ class ObjectHydrator
             // return new $className(...$constructorArgs);
 
             $instance = new $className(...$constructorArgs);
-
         } catch (Throwable $e) {
             // Fallback for simple creation if constructor fails? No, if it fails, it fails.
-            throw new RuntimeException("Failed to instantiate $className: " . $e->getMessage(), 0, $e);
+            throw new RuntimeException("Failed to instantiate {$className}: " . $e->getMessage(), 0, $e);
         }
 
         // 3. Fill remaining public properties not in constructor (or if constructor didn't cover them and they are settable)
@@ -85,9 +89,9 @@ class ObjectHydrator
             }
 
             if (array_key_exists($name, $data)) {
-                 if (!$property->isReadOnly()) {
+                if (!$property->isReadOnly()) {
                     $property->setValue($instance, $data[$name]);
-                 }
+                }
             }
         }
 

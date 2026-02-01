@@ -27,7 +27,7 @@
         "symfony/console": "^8.0"
     },
     "scripts": {
-        "test": "vendor/bin/phpunit"
+        "test": "../../vendor/bin/phpunit --bootstrap ../../vendor/autoload.php"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.5"

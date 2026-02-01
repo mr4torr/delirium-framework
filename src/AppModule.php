@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 declare(strict_types=1);
 
@@ -9,8 +9,6 @@ use Delirium\Core\Attribute\Module;
 // Example Root Module
 #[Module(imports: [
     Example\ExampleModule::class,
-    Post\PostModule::class
+    Post\PostModule::class,
 ])]
-class AppModule
-{
-}
+class AppModule {}

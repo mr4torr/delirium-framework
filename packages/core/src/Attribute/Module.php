@@ -18,6 +18,5 @@ class Module
         public array $imports = [],
         public array $controllers = [],
         public array $providers = [],
-    ) {
-    }
+    ) {}
 }

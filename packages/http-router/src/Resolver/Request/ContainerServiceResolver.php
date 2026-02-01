@@ -12,7 +12,7 @@ use ReflectionParameter;
 class ContainerServiceResolver implements ArgumentResolverInterface
 {
     public function __construct(
-        private ContainerInterface $container
+        private ContainerInterface $container,
     ) {}
 
     public function supports(ServerRequestInterface $request, ReflectionParameter $parameter): bool

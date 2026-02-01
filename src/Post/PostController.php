@@ -7,10 +7,6 @@ namespace App\Post;
 use Delirium\Http\Attribute\Controller;
 use Delirium\Http\Attribute\MapRequestPayload;
 use Delirium\Http\Attribute\Post;
-use Nyholm\Psr7\Response;
-
-
-
 use Symfony\Component\Validator\Constraints as Assert;
 
 class PostDto
@@ -26,18 +22,13 @@ class PostDto
     public int $age;
 }
 
-
-
 #[Controller('/post')]
 class PostController
 {
     // #[ResponseJson]
     #[Post('/{name}')]
-    public function index(
-        #[MapRequestPayload]
-        PostDto $dto,
-        string $name
-    ): array {
+    public function index(#[MapRequestPayload] PostDto $dto, string $name): array
+    {
         return [
             'name' => $name,
             'title' => $dto->name,

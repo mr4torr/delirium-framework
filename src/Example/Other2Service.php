@@ -7,9 +7,8 @@ namespace App\Example;
 class Other2Service
 {
     public function __construct(
-        protected \Psr\Container\ContainerInterface $container
-    ) {
-    }
+        protected \Psr\Container\ContainerInterface $container,
+    ) {}
 
     public function greet(string $name): string
     {

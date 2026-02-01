@@ -35,9 +35,9 @@ tests/
 PHP 8.4: Follow standard conventions
 
 ## Recent Changes
+- 015-code-quality-improvements: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 014-refactor-inline-imports: Added PHP 8.4 + Composer (autoload PSR-4), existing codebase dependencies
 - 013-psr7-support: Added PHP 8.4+ + `nyholm/psr7` (Core), `psr/http-message`, `psr/container`
-- 012-console-runner: Added PHP 8.4 + `symfony/console`, `ext-swoole`, `symfony/dependency-injection`
 
 
 <!-- MANUAL ADDITIONS START -->

@@ -13,19 +13,20 @@ use Psr\Http\Message\ServerRequestInterface;
 use ReflectionNamedType;
 use ReflectionParameter;
 use RuntimeException;
+
 // use Delirium\Http\Exception\ClientException; // Need to create or use generic HttpException
 
 class PayloadResolver implements ArgumentResolverInterface
 {
     public function __construct(
         private ObjectHydrator $hydrator,
-        private ?ValidatorInterface $validator = null
+        private ?ValidatorInterface $validator = null,
     ) {}
 
     public function supports(ServerRequestInterface $request, ReflectionParameter $parameter): bool
     {
         $attributes = $parameter->getAttributes(MapRequestPayload::class);
-        return !empty($attributes);
+        return $attributes !== [];
     }
 
     public function resolve(ServerRequestInterface $request, ReflectionParameter $parameter): mixed
@@ -37,8 +38,9 @@ class PayloadResolver implements ArgumentResolverInterface
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             // Throw 400 Bad Request
-             throw new RuntimeException("Invalid JSON payload: " . json_last_error_msg());
-             // Ideally: throw new BadRequestException(...)
+            throw new RuntimeException('Invalid JSON payload: ' . json_last_error_msg());
+
+            // Ideally: throw new BadRequestException(...)
         }
 
         if (!is_array($data)) {
@@ -48,7 +50,7 @@ class PayloadResolver implements ArgumentResolverInterface
         // 2. Hydrate
         $type = $parameter->getType();
         if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
-             throw new RuntimeException("MapRequestPayload requires a typed class argument.");
+            throw new RuntimeException('MapRequestPayload requires a typed class argument.');
         }
 
         $className = $type->getName();
@@ -57,7 +59,7 @@ class PayloadResolver implements ArgumentResolverInterface
         // 3. Validate
         if ($this->validator) {
             $errors = $this->validator->validate($dto);
-            if (!empty($errors)) {
+            if ($errors !== []) {
                 // Throw 422 Unprocessable Entity
                 // We need a structured exception that Application can catch and format.
                 throw new ValidationException($errors);

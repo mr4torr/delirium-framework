@@ -17,7 +17,7 @@ class XmlResolver implements ResponseResolverInterface
 {
     public function __construct(
         private ResponseFactoryInterface $responseFactory,
-        private StreamFactoryInterface $streamFactory
+        private StreamFactoryInterface $streamFactory,
     ) {}
 
     public function supports(mixed $data, ServerRequestInterface $request, array $attributes): bool
@@ -26,21 +26,21 @@ class XmlResolver implements ResponseResolverInterface
         if ($data instanceof PsrResponseInterface) {
             return $type === ResponseTypeEnum::XML;
         }
-        return $type === \Delirium\Http\Enum\ResponseTypeEnum::XML;
+        return $type === ResponseTypeEnum::XML;
     }
 
     public function resolve(mixed $data, ServerRequestInterface $request, array $attributes): ResponseInterface
     {
-         if ($data instanceof PsrResponseInterface) {
+        if ($data instanceof PsrResponseInterface) {
             if (!$data->hasHeader('Content-Type')) {
-                 $data = $data->withHeader('Content-Type', 'application/xml');
+                $data = $data->withHeader('Content-Type', 'application/xml');
             }
             return $data instanceof ResponseInterface ? $data : new Response($data, $this->streamFactory);
-         }
+        }
 
-         $status = isset($attributes['status']) ? (int)$attributes['status'] : 200;
-         $psrResponse = $this->responseFactory->createResponse($status);
-         $response = new Response($psrResponse, $this->streamFactory);
-         return $response->xml($data);
+        $status = isset($attributes['status']) ? (int) $attributes['status'] : 200;
+        $psrResponse = $this->responseFactory->createResponse($status);
+        $response = new Response($psrResponse, $this->streamFactory);
+        return $response->xml($data);
     }
 }

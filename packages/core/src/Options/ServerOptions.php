@@ -15,8 +15,7 @@ class ServerOptions
         public readonly int $maxConnection = 1024,
         public readonly int $packageMaxLength = 2 * 1024 * 1024,
         public readonly bool $enableReusePort = true,
-    ) {
-    }
+    ) {}
 
     public function toArray(): array
     {

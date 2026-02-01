@@ -22,7 +22,8 @@ class ContainerBuilder
 
     public function register(string $id, string $class): \Symfony\Component\DependencyInjection\Definition
     {
-        return $this->container->register($id, $class)
+        return $this->container
+            ->register($id, $class)
             ->setAutowired(true)
             ->setAutoconfigured(true)
             ->setPublic(true); // Default to public for MVP
@@ -37,7 +38,7 @@ class ContainerBuilder
     {
         // Register default configuration or parameters if needed
         $this->container->setParameter('kernel.environment', $environment);
-        
+
         // Optimize and compile the container
         $this->container->compile();
 
@@ -53,7 +54,7 @@ class ContainerBuilder
         ]);
 
         if (!is_dir(dirname($path))) {
-            mkdir(dirname($path), 0777, true);
+            mkdir(dirname($path), 0o777, true);
         }
 
         file_put_contents($path, $content);
