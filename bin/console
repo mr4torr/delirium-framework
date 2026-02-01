@@ -8,6 +8,10 @@ require getcwd() . '/vendor/autoload.php';
 
 // use Delirium\Core\Application;
 use Delirium\Core\Console\Kernel;
+use Delirium\Core\Container\ContainerFactory;
+use Delirium\Core\AppOptions;
+use Delirium\Core\Foundation\ProviderRepository;
+use Psr\Container\ContainerInterface;
 
 // $publicIndex = '/public/index.php';
 // $optionFile = '--file=';
@@ -37,9 +41,59 @@ use Delirium\Core\Console\Kernel;
 //     exit(1);
 // }
 
-// 2. Wrap in Console Kernel
-$kernel = new Kernel();
-// $kernel = new Kernel($app);
+// 1. Create a minimal container for console context
+$factory = new ContainerFactory();
+$options = new AppOptions();
 
-// 3. Run
+// Use the Example module as the root for console context
+$moduleClass = 'App\\Example\\ExampleModule';
+if (!class_exists($moduleClass)) {
+    // Fallback if example is missing/renamed
+    $moduleClass = 'App\\Module';
+}
+
+// Ensure the class exists to avoid crash, or handle exception via try-catch around create
+try {
+    $container = $factory->create($moduleClass, $options);
+} catch (\Throwable $e) {
+    echo "Error creating container: " . $e->getMessage() . "\n";
+    echo "Ensure 'App\\Example\\ExampleModule' exists or update bin/console.\n";
+    exit(1);
+}
+
+// 2. Create Console Kernel (registers itself as singleton)
+$kernel = new Kernel();
+
+// Inject container into OptimizeCommand if present
+try {
+    $optimizeCommand = $kernel->find('optimize');
+    if (method_exists($optimizeCommand, 'setContainer')) {
+        $optimizeCommand->setContainer($container);
+    }
+} catch (\Throwable $e) {
+    // Command might not be registered or found, ignore
+}
+
+// 3. Bootstrap providers (they can access Kernel::getInstance())
+$environment = getenv('APP_ENV') ?: 'prod';
+$cacheFile = getcwd() . '/var/cache/discovery.php';
+
+$repository = new ProviderRepository($container, $cacheFile, $environment);
+
+// Register repository in container so commands can access it
+// Note: set() is not part of Psr\Container\ContainerInterface but available on our implementation
+if (method_exists($container, 'set')) {
+    $container->set(ProviderRepository::class, $repository);
+}
+
+// Register DevTools provider (in dev only)
+if ($environment === 'dev') {
+    $repository->register(\Delirium\DevTools\DevToolsServiceProvider::class, 'dev');
+}
+
+// Load and boot providers
+$repository->load();
+$repository->boot();
+
+// 3. Run Console Application
 exit($kernel->run());
