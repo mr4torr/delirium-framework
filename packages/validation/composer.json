@@ -9,6 +9,7 @@
     },
     "require": {
         "php": ">=8.4",
-        "symfony/validator": "^8.0"
+        "symfony/validator": "^8.0",
+        "delirium/support": "*"
     }
 }

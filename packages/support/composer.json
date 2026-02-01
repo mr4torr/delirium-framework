@@ -1,0 +1,27 @@
+{
+    "name": "delirium/support",
+    "description": "Shared support helpers and contracts for Delirium Framework",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Delirium\\Support\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Delirium\\Support\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "../../vendor/bin/phpunit"
+    },
+    "require": {
+        "php": "^8.4"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
