@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Delirium\Http\Bridge;
 
 use Delirium\Http\Contract\ContextAdapterInterface;
-use Swoole\Http\Request as SwooleRequest;
-use Swoole\Http\Response as SwooleResponse;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
+use Swoole\Http\Request as SwooleRequest;
+use Swoole\Http\Response as SwooleResponse;
 
 class SwoolePsrAdapter implements ContextAdapterInterface
 {
@@ -20,9 +20,8 @@ class SwoolePsrAdapter implements ContextAdapterInterface
         private ServerRequestFactoryInterface $serverRequestFactory,
         private UriFactoryInterface $uriFactory,
         private StreamFactoryInterface $streamFactory,
-        private UploadedFileFactoryInterface $uploadedFileFactory
-    ) {
-    }
+        private UploadedFileFactoryInterface $uploadedFileFactory,
+    ) {}
 
     public function createFromSwoole(SwooleRequest $swooleRequest): ServerRequestInterface
     {
@@ -32,10 +31,12 @@ class SwoolePsrAdapter implements ContextAdapterInterface
         $files = $swooleRequest->files ?? [];
         $get = $swooleRequest->get ?? [];
         $post = $swooleRequest->post ?? [];
-        $rawContent = $swooleRequest->getContent() ?: '';
+        $content = $swooleRequest->getContent();
+        $rawContent = $content !== false ? $content : '';
 
         // Build URI
-        $uri = $this->uriFactory->createUri()
+        $uri = $this->uriFactory
+            ->createUri()
             ->withScheme(isset($server['https']) && $server['https'] !== 'off' ? 'https' : 'http')
             ->withHost($headers['host'] ?? 'localhost')
             ->withPort($server['server_port'] ?? 80)
@@ -43,11 +44,7 @@ class SwoolePsrAdapter implements ContextAdapterInterface
             ->withQuery($server['query_string'] ?? '');
 
         // Create Request
-        $request = $this->serverRequestFactory->createServerRequest(
-            $server['request_method'] ?? 'GET',
-            $uri,
-            $server
-        );
+        $request = $this->serverRequestFactory->createServerRequest($server['request_method'] ?? 'GET', $uri, $server);
 
         // ... headers ...
         foreach ($headers as $name => $value) {
@@ -71,16 +68,14 @@ class SwoolePsrAdapter implements ContextAdapterInterface
                 $file['size'],
                 $file['error'],
                 $file['name'],
-                $file['type']
+                $file['type'],
             );
         }
         $request = $request->withUploadedFiles($uploadedFiles);
 
         // Body Stream
         $stream = $this->streamFactory->createStream($rawContent);
-        $request = $request->withBody($stream);
-
-        return $request;
+        return $request->withBody($stream);
     }
 
     public function emitToSwoole(ResponseInterface $psrResponse, SwooleResponse $swooleResponse): void

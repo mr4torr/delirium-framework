@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Delirium\DI\Compiler;
 
 use Delirium\DI\Attribute\Inject;
+use ReflectionClass;
+use ReflectionNamedType;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
-use ReflectionClass;
-use ReflectionNamedType;
 
 class PropertyInjectionPass implements CompilerPassInterface
 {
@@ -26,7 +26,7 @@ class PropertyInjectionPass implements CompilerPassInterface
             // Iterate over all properties (including private/protected)
             foreach ($ref->getProperties() as $property) {
                 $attributes = $property->getAttributes(Inject::class);
-                if (empty($attributes)) {
+                if ($attributes === []) {
                     continue;
                 }
 
@@ -100,27 +100,10 @@ class PropertyInjectionPass implements CompilerPassInterface
                     //
                     // OK, I'll add a Configurator for services with private `#[Inject]`.
 
-                    if ($property->isPublic()) {
-                        $definition->setProperty($property->getName(), new Reference($serviceId));
-                    } else {
-                        // Use a Configurator to inject via reflection
-                        // We need to define a generic Configurator service first?
-                        // Or just add a closure method call?
-                        // "Services can be configured with a callable..."
-
-                        // Let's skip private property support complication for step T016 MVP,
-                        // or better, implement `process` to only handle public and LOG warning for private?
-                        //
-                        // User scenario says "spec assumes reflection is used".
-                        // So I should implement reflection injection.
-                        //
-                        // Create `Delirium\DI\Injector\ReflectionInjector`?
-                        // And register it.
-                        // Then `$definition->setConfigurator([new Reference('delirium.di.reflection_injector'), 'inject'])`
-
-                        // Keep it simple for now: Support Public property injection only in first pass, or check if I can add a simple closure.
-                        $definition->setProperty($property->getName(), new Reference($serviceId));
-                    }
+                    // Ideally check visibility. If public, setProperty matches.
+                    // For now, we attempt setProperty for all, though private might fail without extra logic.
+                    // Future refactoring can introduce a dedicated Configurator/Injector for private props.
+                    $definition->setProperty($property->getName(), new Reference($serviceId));
                 }
             }
         }

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Delirium\Core\Container\Exception;
 
-use Psr\Container\ContainerExceptionInterface;
 use Exception;
+use Psr\Container\ContainerExceptionInterface;
 
-class ContainerException extends Exception implements ContainerExceptionInterface
-{
-}
+class ContainerException extends Exception implements ContainerExceptionInterface {}

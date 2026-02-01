@@ -22,11 +22,12 @@ class ResponseResolverChain
 
     public function resolve(mixed $data, ServerRequestInterface $request, array $attributes): ResponseInterface
     {
-
         foreach ($this->resolvers as $resolver) {
-            if ($resolver->supports($data, $request, $attributes)) {
-                return $resolver->resolve($data, $request, $attributes);
+            if (!$resolver->supports($data, $request, $attributes)) {
+                continue;
             }
+
+            return $resolver->resolve($data, $request, $attributes);
         }
 
         throw new \RuntimeException('Unable to resolve response from controller return value.');

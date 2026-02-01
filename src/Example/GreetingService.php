@@ -13,6 +13,6 @@ class GreetingService
 
     public function greet(string $name): string
     {
-        return "Hello, " . $this->other->greet($name) . '!';
+        return 'Hello, ' . $this->other->greet($name) . '!';
     }
 }

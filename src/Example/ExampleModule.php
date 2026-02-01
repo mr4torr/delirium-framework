@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 declare(strict_types=1);
 
@@ -11,13 +11,11 @@ use Delirium\Core\Attribute\Module;
 #[Module(
     controllers: [
         ExampleController::class,
-        PropertyInjectedController::class
+        PropertyInjectedController::class,
     ],
     providers: [
         // GreetingService::class
     ],
-    imports: [GroupModule::class]
+    imports: [GroupModule::class],
 )]
-class ExampleModule
-{
-}
+class ExampleModule {}

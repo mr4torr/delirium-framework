@@ -11,8 +11,8 @@ use Stringable;
 class SwooleStream implements StreamInterface, Stringable
 {
     private $stream;
-    
-    /** 
+
+    /**
      * @param string|resource $body
      */
     public function __construct(mixed $body = '')
@@ -22,11 +22,15 @@ class SwooleStream implements StreamInterface, Stringable
             $this->stream = fopen('php://temp', 'r+');
             fwrite($this->stream, $body);
             rewind($this->stream);
-        } elseif (is_resource($body)) {
-            $this->stream = $body;
-        } else {
-             $this->stream = fopen('php://temp', 'r+');
+            return;
         }
+
+        if (is_resource($body)) {
+            $this->stream = $body;
+            return;
+        }
+
+        $this->stream = fopen('php://temp', 'r+');
     }
 
     public function __toString(): string
@@ -115,7 +119,13 @@ class SwooleStream implements StreamInterface, Stringable
             return false;
         }
         $meta = stream_get_meta_data($this->stream);
-        return str_contains($meta['mode'], 'x') || str_contains($meta['mode'], 'w') || str_contains($meta['mode'], 'c') || str_contains($meta['mode'], 'a') || str_contains($meta['mode'], '+');
+        return (
+            str_contains($meta['mode'], 'x')
+            || str_contains($meta['mode'], 'w')
+            || str_contains($meta['mode'], 'c')
+            || str_contains($meta['mode'], 'a')
+            || str_contains($meta['mode'], '+')
+        );
     }
 
     public function write(string $string): int
@@ -169,6 +179,6 @@ class SwooleStream implements StreamInterface, Stringable
             return $key ? null : [];
         }
         $meta = stream_get_meta_data($this->stream);
-        return $key ? ($meta[$key] ?? null) : $meta;
+        return $key ? $meta[$key] ?? null : $meta;
     }
 }

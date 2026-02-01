@@ -13,7 +13,6 @@ abstract class RouteAttribute
         public readonly string $path = '/',
         public readonly array $methods = ['GET'],
         public readonly ?\Delirium\Http\Enum\ResponseTypeEnum $type = \Delirium\Http\Enum\ResponseTypeEnum::JSON,
-        public readonly ?int $status = 200
-    ) {
-    }
+        public readonly ?int $status = 200,
+    ) {}
 }

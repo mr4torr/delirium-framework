@@ -10,7 +10,6 @@ use Attribute;
 class Controller
 {
     public function __construct(
-        public readonly string $prefix = '/'
-    ) {
-    }
+        public readonly string $prefix = '/',
+    ) {}
 }

@@ -18,8 +18,10 @@ class ServerRequestResolver implements ArgumentResolverInterface
         }
 
         $name = $type->getName();
-        return is_a($name, ServerRequestInterface::class, true) ||
-               is_a($name, \Delirium\Http\Contract\RequestInterface::class, true);
+        return (
+            is_a($name, ServerRequestInterface::class, true)
+            || is_a($name, \Delirium\Http\Contract\RequestInterface::class, true)
+        );
     }
 
     public function resolve(ServerRequestInterface $request, ReflectionParameter $parameter): mixed

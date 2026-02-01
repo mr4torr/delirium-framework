@@ -8,3 +8,5 @@ var/cache/
 !build/keep
 build
 packages/*/vendor/
+
+lint.log

@@ -17,9 +17,9 @@ class RouteRegistry
     public function addRoute(string $method, string $path, mixed $handler): void
     {
         $upperMethod = strtoupper($method);
-        
+
         if (isset($this->routes[$upperMethod][$path])) {
-            throw new LogicException("Duplicate route defined: [$upperMethod] $path");
+            throw new LogicException("Duplicate route defined: [{$upperMethod}] {$path}");
         }
 
         $this->routes[$upperMethod][$path] = $handler;
@@ -37,7 +37,7 @@ class RouteRegistry
     {
         $this->routes = $routes;
     }
-    
+
     public function getHandler(string $method, string $path): mixed
     {
         return $this->routes[strtoupper($method)][$path] ?? null;

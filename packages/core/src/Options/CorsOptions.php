@@ -15,6 +15,5 @@ class CorsOptions
         public array $allowOrigins = ['*'],
         public array $allowMethods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         public array $allowHeaders = ['Content-Type', 'Authorization', 'X-Requested-With'],
-    ) {
-    }
+    ) {}
 }

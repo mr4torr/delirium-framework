@@ -1,12 +1,14 @@
 <!--
 SYNC IMPACT REPORT
-Version: 1.4.0 (Minor)
-Date: 2026-01-02
+Version: 1.5.0 (Minor)
+Date: 2026-02-01
 
 Changes:
-- Bumped version to 1.4.0 (Minor) due to addition of Namespace Import Standards.
-- Modified [PRINCIPLE_8] "Code Quality Standards" to enforce `use` statements over inline FQNs.
-- Verified templates (No structure changes required, rule is stylistic).
+- Bumped version to 1.5.0 (Minor).
+- Modified [PRINCIPLE_8] "Code Quality Standards": Added rule to remove unused `use` statements.
+- Added [DEV_STANDARDS] "Workflow Enforcement": Mandated `composer lint` execution at the end of implementation.
+- Added [DEV_STANDARDS] "Reference Implementations": Mandated updating example code in `src/`.
+- Verified templates: `plan-template.md`, `spec-template.md`, `tasks-template.md` are compatible.
 
 Templates Status:
 - .specify/templates/plan-template.md: ✅ Verified
@@ -76,6 +78,7 @@ Code generation and implementation must adhere to recognized craftsmanship stand
 - **Object Calisthenics:** Follow best practices for object-oriented design (e.g., keep methods small, minimize indentation levels, avoid getter/setter abuse where rich domain models are possible).
 - **Refactoring Guru:** Design implementation must align with the canonical examples and structures provided by [Refactoring Guru](https://refactoring.guru/design-patterns).
 - **Import Ordering:** Inline FQNs (Fully Qualified Names) are prohibited inside functions/methods. All dependencies must be imported via the `use` mechanism at the top of the file to maintain readability and reduce visual noise.
+- **Unused Imports:** Any `use` statement that is not actively used in the file MUST be removed directly to keep the file clean.
 
 ## Design Patterns Architecture
 
@@ -135,10 +138,16 @@ Delirium Framework strictly follows PHP Standard Recommendations (PSRs) to ensur
 - **Integration Tests:** Must run inside a Swoole environment to verify coroutine compatibility and memory behavior.
 - **Enforcement:** See Principle VII.
 
+### Workflow Enforcement
+- **Linting Gate:** `composer lint` MUST be executed at the end of every implementation task. If it fails, corrections MUST be applied immediately. No feature is considered "complete" if linting fails.
+
+### Reference Implementations
+- **Example Code:** When introduced to new patterns or implementation details, update or create reference implementations within `src/` to demonstrate usage.
+
 ## Governance
 This Constitution is the highest law of the Delirium Framework development.
 - **Amendments:** Must be proposed via valid PRs and require approval from core maintainers.
 - **Enforcement:** Code reviews must explicitly verify adherence to "Swoole-First" and "Design Patterns" principals. Non-compliant code (e.g., blocking I/O) will be rejected immediately.
 - **Communication:** Whenever you communicate in the chat, please communicate in Portuguese (Brazil).
 
-**Version:** 1.4.0 | **Ratified:** 2025-12-20 | **Last Amended:** 2026-01-02
+**Version:** 1.5.0 | **Ratified:** 2025-12-20 | **Last Amended:** 2026-02-01

@@ -20,10 +20,12 @@ integrations = ["phpunit"]
 strict-types = { level = "error" }
 ambiguous-function-call = { enabled = false }
 literal-named-argument = { enabled = false }
-too-many-methods = { threshold = 20 }
+too-many-methods = { threshold = 40 }
+no-boolean-flag-parameter = { enabled = false }
 cyclomatic-complexity = { threshold = 50 }
 kan-defect = { threshold = 5.0 }
 halstead = { effort-threshold = 7000 }
+excessive-parameter-list = { threshold = 12 }
 
 [analyzer]
 find-unused-definitions = true

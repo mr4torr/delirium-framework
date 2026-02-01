@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Delirium\Http;
 
-use Delirium\Http\Contract\RouterInterface;
 use Delirium\Http\Contract\DispatcherInterface;
+use Delirium\Http\Contract\RouterInterface;
 use Delirium\Http\Scanner\AttributeScanner;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,14 +16,12 @@ class Router implements RouterInterface
     private bool $compiled = false;
 
     public function __construct(
-        private RouteRegistry $registry 
-    )
-    {
-    }
+        private RouteRegistry $registry,
+    ) {}
 
     public function scan(string $directory): void
     {
-        (new AttributeScanner($this->registry))->scanDirectory($directory);
+        new AttributeScanner($this->registry)->scanDirectory($directory);
     }
 
     public function register(string|array $methods, string $path, callable|array $handler): void
@@ -56,10 +54,10 @@ class Router implements RouterInterface
         if (!$this->compiled) {
             $this->compileRoutes();
         }
-        
+
         return $this->dispatcher->dispatch($request);
     }
-    
+
     private function compileRoutes(): void
     {
         $allRoutes = $this->registry->getRoutes();
@@ -73,14 +71,15 @@ class Router implements RouterInterface
         }
         $this->compiled = true;
     }
-    
+
     public function setDispatcher(DispatcherInterface $dispatcher): void
     {
         $this->dispatcher = $dispatcher;
+
         // Also we might need to populate the dispatcher from registry here
         // But implementation detail of dispatcher might differ (e.g. inject registry into dispatcher).
     }
-    
+
     public function getRegistry(): RouteRegistry
     {
         return $this->registry;

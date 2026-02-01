@@ -37,13 +37,13 @@ class RoutePass implements CompilerPassInterface
 
             // Optimization: check if class has Controller attribute before scanning fully?
             // AttributeScanner::scanClass performs the check internally efficiently using Reflection.
-            // Using reflection directly here avoids loading the class if we can inspect via token? 
+            // Using reflection directly here avoids loading the class if we can inspect via token?
             // But we already checked class_exists(autoload).
-            
+
             // Just delegate to scanner.
             // Note: Scanner adds to $tempRegistry.
             // We want to capture what was added.
-            
+
             // Reset temp registry logic or accumulate all?
             // Accumulate all is fine.
             $scanner->scanClass($class);
@@ -53,14 +53,14 @@ class RoutePass implements CompilerPassInterface
         foreach ($tempRegistry->getRoutes() as $method => $routes) {
             foreach ($routes as $path => $handler) {
                 // $handler in Scanner is [$className, $methodName]
-                
+
                 // We add a method call to `addRoute` on the RouteRegistry service.
                 // start with addRoute(string $method, string $path, mixed $handler)
-                
+
                 $registryDefinition->addMethodCall('addRoute', [
                     $method,
                     $path,
-                    $handler
+                    $handler,
                 ]);
             }
         }

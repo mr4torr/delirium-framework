@@ -10,6 +10,6 @@ use Attribute;
 class Inject
 {
     public function __construct(
-        public ?string $serviceId = null
+        public ?string $serviceId = null,
     ) {}
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Delirium\Core\Console;
 
-use Delirium\Core\Contract\ApplicationInterface;
 use Delirium\DevTools\Console\Commands\ServerWatchCommand;
 use Symfony\Component\Console\Application as ConsoleApplication;
 
@@ -17,13 +16,13 @@ class Kernel extends ConsoleApplication
         // Register Core Commands
         $this->addCommands([
             new Commands\ServerCommand(),
-            new Commands\SwooleCheckCommand()
+            new Commands\SwooleCheckCommand(),
         ]);
 
         // Register DevTools Commands if available
         if (class_exists(ServerWatchCommand::class)) {
             $this->addCommands([
-                new ServerWatchCommand()
+                new ServerWatchCommand(),
             ]);
         }
     }

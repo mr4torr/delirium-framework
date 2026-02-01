@@ -59,7 +59,8 @@
         "phpunit/phpunit": "^12.5",
         "carthage-software/mago": "^1.0",
         "swoole/ide-helper": "^6.0",
-        "symfony/var-dumper": "^8.0"
+        "symfony/var-dumper": "^8.0",
+        "laradumps/laradumps-core": "^4.0"
     },
     "scripts": {
         "lint": "mago lint",

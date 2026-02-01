@@ -9,8 +9,11 @@ use Attribute;
 #[Attribute(Attribute::TARGET_METHOD)]
 class Put extends RouteAttribute
 {
-    public function __construct(string $path = '/', ?\Delirium\Http\Enum\ResponseTypeEnum $type = \Delirium\Http\Enum\ResponseTypeEnum::JSON, ?int $status = 200)
-    {
+    public function __construct(
+        string $path = '/',
+        ?\Delirium\Http\Enum\ResponseTypeEnum $type = \Delirium\Http\Enum\ResponseTypeEnum::JSON,
+        ?int $status = 200,
+    ) {
         parent::__construct($path, ['PUT'], $type, $status);
     }
 }

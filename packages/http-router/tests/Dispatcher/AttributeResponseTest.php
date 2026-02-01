@@ -96,6 +96,6 @@ class AttributeResponseTest extends TestCase
         $response = $this->dispatcher->dispatch($realRequest);
 
         $this->assertEquals(201, $response->getStatusCode());
-        $this->assertEquals('created', (string)$response->getBody());
+        $this->assertEquals('"created"', (string)$response->getBody());
     }
 }
