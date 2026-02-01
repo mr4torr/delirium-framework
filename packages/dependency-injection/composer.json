@@ -23,6 +23,7 @@
         "php": ">=8.4",
         "symfony/dependency-injection": "^8.0",
         "symfony/config": "^8.0",
-        "psr/container": "^2.0"
+        "psr/container": "^2.0",
+        "delirium/support": "*"
     }
 }

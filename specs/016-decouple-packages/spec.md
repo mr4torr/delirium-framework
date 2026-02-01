@@ -5,6 +5,14 @@
 **Status**: Draft
 **Input**: User description: "Assegurar que os pacotes contidos no diretório ./packages sejam agnósticos e independentes, evitando qualquer tipo de dependência entre eles. Na eventual identificação de acoplamentos, será necessário planejar e executar as adequações necessárias para mitigá-los."
 
+## Clarifications
+
+### Session 2026-02-01
+- Q: Which mechanism should enforce architectural boundaries? → A: **Deptrac**. We will configure `qossmic/deptrac` with a `depfile.yaml` to strictly enforce layers and fail the build on violations.
+- Q: How should we handle shared logic (helpers)? → A: **New Support Package**. Create `packages/support` as a lightweight, dependency-free library for common utilities. Other packages can depend on this without violating decoupling principles.
+- Q: How to handle dev-tools dependencies? → A: **Strict One-Way**. `packages/dev-tools` MUST NOT depend on `Core`. It should be a standalone library. `Core` (and others) can `require-dev` it.
+- Q: Where should shared contracts/interfaces live? → A: **PSR + Support Fallback**. Use standard PSR interfaces whenever possible. If a custom shared interface is strictly necessary, it MUST be placed in `packages/support` (not a separate contracts package).
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Standalone Package Usage (Priority: P1)
@@ -27,22 +35,23 @@ As a framework maintainer, I want to ensure that dependencies flow only in one d
 
 **Why this priority**: Prevents circular dependencies that break CI/CD and make refactoring impossible.
 
-**Independent Test**: Run a static analysis tool (e.g., deptrac or a custom grep script) to verify forbidden namespace imports.
+**Independent Test**: Run `vendor/bin/deptrac` (or `mago` if integrated) to verify strictly defined layers.
 
 **Acceptance Scenarios**:
 
 1. **Given** the `packages/` directory, **When** analyzing `http-router`, **Then** no usage of `Delirium\Core` namespace exists.
 2. **Given** the `packages/` directory, **When** analyzing `dependency-injection`, **Then** no usage of `Delirium\Core` namespace exists.
 3. **Given** the `packages/` directory, **When** analyzing `validation`, **Then** no usage of `Delirium\Core` namespace exists.
+4. **Given** the `packages/dev-tools` directory, **When** analyzing it, **Then** no dependency on `Delirium\Core` exists in `composer.json` or code.
 
 ### Edge Cases
 
 - **Circular Logic**: If `Package A` implements an interface from `Package B`, but `Package B` puts that interface in its `src` and depends on `Package A` for something else.
-  - *Resolution*: Extract interfaces to a separate `contracts` package if strict decoupling is needed, or allow one-way dependency (Contract -> Implementation).
+  - *Resolution*: Prefer PSR interfaces. If a custom interface is needed, move it to `packages/support`.
 - **Service Location**: If `http-router` needs to resolve controllers and uses `Core\Container`.
   - *Resolution*: It MUST use `Psr\Container\ContainerInterface`.
 - **Global Helpers**: If packages rely on global helper functions defined in `Core`.
-  - *Resolution*: Helper functions should be standalone or copied, or a lightweight `support` package should be created that everyone can depend on (without it depending on anything).
+  - *Resolution*: Helper functions MUST be moved to `packages/support`.
 
 ## Requirements
 
@@ -53,11 +62,16 @@ As a framework maintainer, I want to ensure that dependencies flow only in one d
 - **FR-003**: The `packages/validation` MUST NOT depend on `packages/core` or other sibling packages.
 - **FR-004**: The `packages/core` MAY depend on other packages to glue them together, but MUST use abstractions where possible to allow swapping implementations if designed as such.
 - **FR-005**: All packages MUST have their own Valid `composer.json` defining their specific dependencies, without relying on the root `composer.json`.
+- **FR-006**: The system MUST include a `depfile.yaml` (Deptrac configuration) defining layers for each package and forbidding upward dependencies.
+- **FR-007**: A new `packages/support` package MUST be created to house shared utilities (e.g., array/string helpers) with ZERO internal dependencies.
+- **FR-008**: The `packages/dev-tools` library MUST be strictly decoupled from `Core`; it can be a dev-dependency of other packages but cannot depend on them.
+- **FR-009**: Shared interfaces MUST use standard PSRs where available. Custom shared interfaces MUST be placed in `packages/support`.
 
 ### Key Entities
 
 - **Package**: A directory under `packages/` containing a `composer.json` and `src/`.
 - **Dependency**: A `use` statement or `require` field in `composer.json` pointing to a sibling package.
+- **Layer**: A logical group of classes defined in Deptrac (e.g., `Layer: Http`, `Layer: Core`).
 
 ## Success Criteria
 
@@ -67,6 +81,8 @@ As a framework maintainer, I want to ensure that dependencies flow only in one d
 - **SC-002**: 0 imports of `Delirium\Core` found in `packages/dependency-injection/src`.
 - **SC-003**: 0 imports of `Delirium\DI` found in `packages/http-router/src` (should use `Psr\Container`).
 - **SC-004**: `composer validate` passes for all individual package `composer.json` files.
+- **SC-005**: `vendor/bin/deptrac` execution returns exit code 0 (no violations).
+- **SC-006**: `packages/dev-tools/composer.json` has an empty `require` block (or only external libs).
 
 **Feature Branch**: `[###-feature-name]`
 **Created**: [DATE]

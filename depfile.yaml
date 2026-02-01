@@ -1,0 +1,67 @@
+deptrac:
+  paths:
+    - ./packages/core/src
+    - ./packages/http-router/src
+    - ./packages/dependency-injection/src
+    - ./packages/validation/src
+    - ./packages/support/src
+    - ./packages/dev-tools/src
+
+  exclude_files:
+    - '#.*test.*#'
+
+  layers:
+    - name: Core
+      collectors:
+        - type: classNameRegex
+          value: '#^Delirium\\Core\\.*#'
+    - name: Http
+      collectors:
+        - type: classNameRegex
+          value: '#^Delirium\\Http\\.*#'
+    - name: Di
+      collectors:
+        - type: classNameRegex
+          value: '#^Delirium\\DI\\.*#'
+    - name: Validation
+      collectors:
+        - type: classNameRegex
+          value: '#^Delirium\\Validation\\.*#'
+    - name: Support
+      collectors:
+        - type: classNameRegex
+          value: '#^Delirium\\Support\\.*#'
+    - name: DevTools
+      collectors:
+        - type: classNameRegex
+          value: '#^Delirium\\DevTools\\.*#'
+    - name: Vendor
+      collectors:
+        - type: classNameRegex
+          value: '#^(?!Delirium\\).*#'
+
+  ruleset:
+    Http:
+      - Support
+      - Vendor
+      # Forbidden: Core
+    Di:
+      - Support
+      - Vendor
+      # Forbidden: Core
+    Validation:
+      - Support
+      - Vendor
+      # Forbidden: Core
+    Core:
+      - Http
+      - Di
+      - Validation
+      - Support
+      - Vendor
+    Support:
+      - Vendor
+      # Forbidden: Core, Http, Di
+    DevTools:
+      - Vendor
+      # Forbidden: Core (Strict one-way)

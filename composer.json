@@ -19,7 +19,8 @@
             "Delirium\\Http\\": "packages/http-router/src/",
             "Delirium\\DI\\": "packages/dependency-injection/src/",
             "Delirium\\DevTools\\": "packages/dev-tools/src/",
-            "Delirium\\Validation\\": "packages/validation/src/"
+            "Delirium\\Validation\\": "packages/validation/src/",
+            "Delirium\\Support\\": "packages/support/src/"
         }
     },
     "autoload-dev": {
@@ -27,6 +28,7 @@
             "Delirium\\Core\\Tests\\": "packages/core/tests/",
             "Delirium\\Http\\Tests\\": "packages/http-router/tests/",
             "Delirium\\DI\\Tests\\": "packages/dependency-injection/tests/",
+            "Delirium\\Support\\Tests\\": "packages/support/tests/",
             "App\\": "src/"
         }
     },
@@ -53,20 +55,23 @@
         "delirium/dependency-injection": "*",
         "delirium/http-router": "*",
         "delirium/validation": "*",
-        "delirium/dev-tools": "*"
+        "delirium/dev-tools": "*",
+        "delirium/support": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.5",
         "carthage-software/mago": "^1.0",
         "swoole/ide-helper": "^6.0",
         "symfony/var-dumper": "^8.0",
-        "laradumps/laradumps-core": "^4.0"
+        "laradumps/laradumps-core": "^4.0",
+        "deptrac/deptrac": "^4.5"
     },
     "scripts": {
         "lint": "mago lint",
         "analyze": "mago analyze",
         "fmt": "mago fmt",
-        "test": "vendor/bin/phpunit"
+        "test": "vendor/bin/phpunit",
+        "arch": "vendor/bin/deptrac analyze --config-file=depfile.yaml"
     },
     "config": {
         "allow-plugins": {
