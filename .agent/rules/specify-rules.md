@@ -18,6 +18,8 @@ Auto-generated from all feature plans. Last updated: 2025-12-20
 - N/A (Code refactoring only) (014-refactor-inline-imports)
 - PHP 8.4+ + `qossmic/deptrac`, `delirium/core`, `delirium/http-router`, `delirium/dependency-injection`, `delirium/validation`, `delirium/support` (new). (016-decouple-packages)
 - File system for `depfile.yaml` cache/config. (016-decouple-packages)
+- PHP 8.4+ (utilizing strict types and possibly property hooks if applicable) + `delirium/support`, `delirium/core`, `psr/container` (017-service-discovery)
+- File-based cache in `var/cache/discovery.php` (017-service-discovery)
 
 - PHP 8.4 + openswoole/core, psr/http-message, psr/container (001-http-routing-pkg)
 
@@ -37,9 +39,9 @@ tests/
 PHP 8.4: Follow standard conventions
 
 ## Recent Changes
+- 017-service-discovery: Added PHP 8.4+ (utilizing strict types and possibly property hooks if applicable) + `delirium/support`, `delirium/core`, `psr/container`
 - 016-decouple-packages: Added PHP 8.4+ + `qossmic/deptrac`, `delirium/core`, `delirium/http-router`, `delirium/dependency-injection`, `delirium/validation`, `delirium/support` (new).
 - 015-code-quality-improvements: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
-- 014-refactor-inline-imports: Added PHP 8.4 + Composer (autoload PSR-4), existing codebase dependencies
 
 
 <!-- MANUAL ADDITIONS START -->

@@ -8,22 +8,27 @@ use Symfony\Component\Console\Application as ConsoleApplication;
 
 class Kernel extends ConsoleApplication
 {
+    private static ?self $instance = null;
+
     public function __construct()
     {
         parent::__construct('Delirium Framework', '1.1.0');
+
+        self::$instance = $this;
 
         // Register Core Commands
         $this->addCommands([
             new Commands\ServerCommand(),
             new Commands\SwooleCheckCommand(),
+            new Commands\OptimizeCommand(),
         ]);
+    }
 
-        // Register DevTools Commands if available
-        $watchCommand = 'Delirium\\DevTools\\Console\\Commands\\ServerWatchCommand';
-        if (class_exists($watchCommand)) {
-            $this->addCommands([
-                new $watchCommand(),
-            ]);
-        }
+    /**
+     * Get the current Kernel instance (for provider access).
+     */
+    public static function getInstance(): ?self
+    {
+        return self::$instance;
     }
 }
