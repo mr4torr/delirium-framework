@@ -20,6 +20,8 @@ Auto-generated from all feature plans. Last updated: 2025-12-20
 - File system for `depfile.yaml` cache/config. (016-decouple-packages)
 - PHP 8.4+ (utilizing strict types and possibly property hooks if applicable) + `delirium/support`, `delirium/core`, `psr/container` (017-service-discovery)
 - File-based cache in `var/cache/discovery.php` (017-service-discovery)
+- PHP 8.4 + `symfony/console`, `delirium/http-router` (018-route-list-command)
+- N/A (Read-only from memory/registry) (018-route-list-command)
 
 - PHP 8.4 + openswoole/core, psr/http-message, psr/container (001-http-routing-pkg)
 
@@ -39,9 +41,9 @@ tests/
 PHP 8.4: Follow standard conventions
 
 ## Recent Changes
+- 018-route-list-command: Added PHP 8.4 + `symfony/console`, `delirium/http-router`
 - 017-service-discovery: Added PHP 8.4+ (utilizing strict types and possibly property hooks if applicable) + `delirium/support`, `delirium/core`, `psr/container`
 - 016-decouple-packages: Added PHP 8.4+ + `qossmic/deptrac`, `delirium/core`, `delirium/http-router`, `delirium/dependency-injection`, `delirium/validation`, `delirium/support` (new).
-- 015-code-quality-improvements: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 
 
 <!-- MANUAL ADDITIONS START -->
