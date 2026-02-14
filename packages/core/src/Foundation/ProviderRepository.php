@@ -22,15 +22,6 @@ use Psr\Container\ContainerInterface;
 final class ProviderRepository
 {
     /**
-     * @var array<string, list<class-string<ServiceProvider>>> Map of environment => provider class names
-     */
-    private array $providers = [
-        'all' => [],
-        'dev' => [],
-        'prod' => [],
-    ];
-
-    /**
      * @var list<ServiceProvider> Instantiated provider instances
      */
     private array $loadedProviders = [];
@@ -44,11 +35,19 @@ final class ProviderRepository
      * @param ContainerInterface $container The DI container
      * @param string $cacheFile Absolute path to cache file (e.g., var/cache/discovery.php)
      * @param string $currentEnv Current environment (dev/prod)
+     * @param array<string, list<class-string<ServiceProvider>>> $providers Map of environment => provider class names
      */
     public function __construct(
         private readonly ContainerInterface $container,
         private readonly string $cacheFile,
-        private readonly string $currentEnv = 'prod'
+        private readonly string $currentEnv = 'prod',
+        private array $providers = [
+            'all' => [
+                \Delirium\Http\HttpRouterServiceProvider::class,
+            ],
+            'dev' => [],
+            'prod' => [],
+        ]
     ) {
     }
 
