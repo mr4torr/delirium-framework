@@ -1,0 +1,143 @@
+warning[no-shorthand-ternary]: Use of the shorthand ternary operator.
+   ┌─ packages/core/src/Application.php:44:30
+   │
+44 │         $this->environment = $environment ?? getenv('APP_ENV') ?: 'prod';
+   │                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Ambiguous check due to `? :` loose comparison
+   │
+   = Help: Use null coalesce operator (`??`) or ternary operator with explicit strict comparison.
+
+warning[no-empty-catch-clause]: Do not use empty `catch` blocks.
+   ┌─ packages/http-router/src/Console/Command/RouteListCommand.php:30:15
+   │  
+30 │               } catch (\Throwable $e) {
+   │ ╭───────────────^
+31 │ │                 // Ignore if not found or execution failed
+32 │ │             }
+   │ ╰─────────────^ This `catch` block is empty and will swallow exceptions
+   │  
+   = Swallowing exceptions silently can hide critical errors and make debugging extremely difficult.
+   = Help: Either log the exception, re-throw it, or handle it. If ignoring it is intentional, add a `@mago-expect` comment explaining why.
+
+help[prefer-early-continue]: Consider using early continue pattern to reduce nesting.
+   ┌─ packages/http-router/src/Console/Command/RouteListCommand.php:42:13
+   │    
+41 │   ╭         foreach ($routes as $methodRoutes) {
+42 │ ╭ │             if (!empty($methodRoutes)) {
+43 │ │ │                 $hasRoutes = true;
+44 │ │ │                 break;
+45 │ │ │             }
+   │ ╰─│─────────────^ This if statement wraps the entire loop body
+46 │   │         }
+   │   ╰─────────' The loop can benefit from early continue to improve readability
+   │    
+   = This pattern improves readability by reducing nesting levels.
+   = Help: Invert the condition and use `continue` to exit early, then place the main logic outside the if block.
+
+error[no-empty]: Use of the `empty` construct.
+   ┌─ packages/http-router/src/Console/Command/RouteListCommand.php:42:18
+   │
+42 │             if (!empty($methodRoutes)) {
+   │                  ^^^^^^^^^^^^^^^^^^^^ Ambiguous check due to `empty()` loose semantic
+   │
+   = `empty()` exhibits unexpected behavior on specific value.
+   = It is unclear what condition is being treated with `empty()`.
+   = Help: Use strict comparison or specific predicate function to clearly convey your intent.
+
+help[prefer-arrow-function]: This closure can be simplified to a more concise arrow function.
+   ┌─ packages/http-router/src/Console/Command/RouteListCommand.php:62:22
+   │
+62 │         usort($rows, function ($a, $b) {
+   │                      ^^^^^^^^ This traditional closure...
+63 │             return strcmp($a[1], $b[1]);
+   │                    -------------------- ...can be converted to an arrow function that implicitly returns this expression.
+   │
+   = Arrow functions provide a more concise syntax for simple closures that do nothing but return an expression.
+   = Arrow functions automatically capture variables from the parent scope by-value, which differs from traditional closures that use an explicit `use` clause and can capture by-reference.
+   = Help: Consider rewriting this as an arrow function to improve readability.
+
+help[prefer-static-closure]: This closure does not use `$this` and should be declared static.
+   ┌─ packages/http-router/src/Console/Command/RouteListCommand.php:62:22
+   │
+62 │         usort($rows, function ($a, $b) {
+   │                      ^^^^^^^^ add `static` before this closure keyword
+   │
+   = Static closures are more memory-efficient and make it clear that `$this` is not used.
+   = Help: Add the `static` keyword before `function` to make this closure static.
+
+help[no-else-clause]: Avoid `else` clauses.
+   ┌─ packages/core/src/Module/ModuleScanner.php:58:15
+   │  
+58 │               } else {
+   │ ╭───────────────^
+59 │ │                 $definition = $builder->register($controller, $controller);
+60 │ │             }
+   │ ╰─────────────^ This `else` clause can often be eliminated
+   │  
+   = Code is often clearer when the main logic is not nested inside an `if` statement.
+   = Help: Consider refactoring to use an early return (a guard clause) to simplify the control flow.
+
+help[no-else-clause]: Avoid `elseif` clauses.
+   ┌─ packages/core/src/Module/ModuleScanner.php:69:15
+   │  
+69 │               } elseif (is_string($import)) {
+   │ ╭───────────────^
+70 │ │                 $this->scan($import, $builder, $prefix);
+71 │ │             }
+   │ ╰─────────────^ This `elseif` adds unnecessary complexity
+   │  
+   = Complex conditional chains can often be simplified by using early returns or a `match` expression.
+   = Help: Refactor to use guard clauses (early returns) or a `match` expression for clarity.
+
+warning[explicit-octal]: Use explicit octal numeral notation.
+   ┌─ packages/core/src/Console/Command/CacheClearCommand.php:57:35
+   │
+57 │             if (!mkdir($cacheDir, 0777, true)) {
+   │                                   ^^^^ Implicit octal numeral notation used here
+   │
+   = Using `0o` makes the octal intent explicit and avoids confusion with other formats.
+   = Help: Replace the leading `0` with `0o` to make the octal intent explicit.
+
+error[no-empty]: Use of the `empty` construct.
+   ┌─ packages/core/src/Console/Command/CacheClearCommand.php:97:13
+   │
+97 │         if (empty($listeners)) {
+   │             ^^^^^^^^^^^^^^^^^ Ambiguous check due to `empty()` loose semantic
+   │
+   = `empty()` exhibits unexpected behavior on specific value.
+   = It is unclear what condition is being treated with `empty()`.
+   = Help: Use strict comparison or specific predicate function to clearly convey your intent.
+
+help[no-else-clause]: Avoid `else` clauses.
+    ┌─ packages/core/src/Console/Command/CacheClearCommand.php:142:15
+    │  
+142 │               } else {
+    │ ╭───────────────^
+143 │ │                 unlink($path);
+144 │ │             }
+    │ ╰─────────────^ This `else` clause can often be eliminated
+    │  
+    = Code is often clearer when the main logic is not nested inside an `if` statement.
+    = Help: Consider refactoring to use an early return (a guard clause) to simplify the control flow.
+
+warning[no-redundant-use]: Redundant import: `GreetingService` is already in the current namespace `App\Example`.
+  ┌─ src/Example/ExampleController.php:7:5
+  │
+7 │ use App\Example\GreetingService;
+  │ --- ^^^^^^^^^^^^^^^^^^^^^^^^^^^ `GreetingService` does not need to be imported.
+  │ │    
+  │ Redundant `use` statement.
+  │
+  = Help: Remove the import; the symbol is already accessible without it.
+
+warning[tagged-todo]: TODO should be tagged with (@username) or (#issue).
+   ┌─ packages/core/src/Console/Command/OptimizeCommand.php:55:9
+   │
+55 │         // TODO: In the future, we might want to also cache aliases here
+   │         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ TODO comment is untagged
+   │
+   = Help: Add a user tag or issue reference to the TODO comment, e.g. TODO(@azjezz), TODO(azjezz), TODO(#123).
+
+error: found 13 issues: 2 error(s), 5 warning(s), 6 help message(s)
+ = 5 issues contain auto-fix suggestions
+
+Script mago lint handling the lint event returned with error code 1

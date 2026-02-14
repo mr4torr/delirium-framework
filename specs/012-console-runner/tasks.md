@@ -64,7 +64,7 @@ description: "Task list for Console Runner feature implementation"
 
 ### Implementation for User Story 2
 
-- [x] T010 [US2] Create `packages/core/src/Console/Commands/ServerCommand.php`
+- [x] T010 [US2] Create `packages/core/src/Console/Command/ServerCommand.php`
 - [x] T011 [US2] Implement `execute` method in `ServerCommand` with logic from `bin/server`
 - [x] T012 [US2] Register `ServerCommand` in `packages/core/src/Console/Kernel.php` or `packages/core/src/App.module.php` (if modular)
 - [x] T013 [US2] Verify `php bin/console server` boots the Swoole server
@@ -81,7 +81,7 @@ description: "Task list for Console Runner feature implementation"
 
 ### Implementation for User Story 3
 
-- [x] T014 [US3] Create `packages/dev-tools/src/Console/Commands/ServerWatchCommand.php`
+- [x] T014 [US3] Create `packages/dev-tools/src/Console/Command/ServerWatchCommand.php`
 - [x] T015 [US3] Implement `execute` method in `ServerWatchCommand` with logic from `bin/watcher`
 - [x] T016 [US3] Configure `ServerWatchCommand` to use `Delirium\DevTools\Watcher`
 - [x] T017 [US3] Register `ServerWatchCommand` in application (likely via `DevTools` package discovery or manual config)

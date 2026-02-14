@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Delirium\Core\Console\Commands;
+namespace Delirium\Core\Console\Command;
 
 use Delirium\Core\Foundation\ProviderRepository;
 use Psr\Container\ContainerInterface;
@@ -32,6 +32,16 @@ final class OptimizeCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
+        // Call cache:clear first if available
+        if ($this->getApplication()) {
+            try {
+                $command = $this->getApplication()->find('cache:clear');
+                $command->run($input, $output);
+            } catch (\Throwable $e) {
+                $io->warning('Could not trigger cache:clear before optimization.');
+            }
+        }
+
         if (!$this->container || !$this->container->has(ProviderRepository::class)) {
             $io->error('ProviderRepository service not found in container.');
             return Command::FAILURE;
@@ -42,7 +52,7 @@ final class OptimizeCommand extends Command
 
         $io->text('Generating provider discovery cache...');
 
-        // TODO: In the future, we might want to also cache aliases here
+        // TODO(@mr4torr): In the future, we might want to also cache aliases here
         // For now, we only cache providers. The aliases array would need to be
         // collected from AliasLoader if we want them persisted too.
         // But ProviderRepository already has access to aliases if they were

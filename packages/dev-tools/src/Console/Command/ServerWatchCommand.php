@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Delirium\DevTools\Console\Commands;
+namespace Delirium\DevTools\Console\Command;
 
 use Delirium\DevTools\ProcessManager;
 use Delirium\DevTools\Watcher;

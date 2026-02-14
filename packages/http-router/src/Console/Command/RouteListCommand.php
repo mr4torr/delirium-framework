@@ -22,6 +22,16 @@ class RouteListCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        // Call cache:clear first if available
+        if ($this->getApplication()) {
+            try {
+                $command = $this->getApplication()->find('cache:clear');
+                $command->run($input, $output);
+            } catch (\Throwable $e) {
+                // Ignore if not found or execution failed
+            }
+        }
+
         $routes = $this->registry->getRoutes();
         $table = new Table($output);
         $table->setHeaders(['Method', 'URI', 'Handler']);

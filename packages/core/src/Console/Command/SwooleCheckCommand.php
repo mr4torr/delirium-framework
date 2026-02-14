@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Delirium\Core\Console\Commands;
+namespace Delirium\Core\Console\Command;
 
 use Swoole\Http\Server;
 use Symfony\Component\Console\Attribute\AsCommand;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Example;
 
-use App\Example\GreetingService;
 use Delirium\Http\Attribute\Controller;
 use Delirium\Http\Attribute\Get;
 

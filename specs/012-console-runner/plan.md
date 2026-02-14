@@ -53,13 +53,13 @@ root/
 │   │   └── src/
 │   │       └── Console/
 │   │           ├── Kernel.php       # [NEW] Application wrapper/bootloader
-│   │           └── Commands/
+│   │           └── Command/
 │   │               └── ServerCommand.php # [NEW]
 │   └── dev-tools/
 │       ├── composer.json # [MODIFY] Add symfony/console dependency
 │       └── src/
 │           └── Console/
-│               └── Commands/
+│               └── Command/
 │                   └── ServerWatchCommand.php # [NEW]
 └── composer.json        # [MODIFY] Require symfony/console
 ```

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Delirium\DevTools;
 
 use Delirium\Core\Console\Kernel;
-use Delirium\DevTools\Console\Commands\ServerWatchCommand;
+use Delirium\DevTools\Console\Command\ServerWatchCommand;
 use Delirium\Support\ServiceProvider;
 
 /**

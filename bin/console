@@ -91,29 +91,32 @@ try {
 // 2. Create Console Kernel (registers itself as singleton)
 $kernel = new Kernel();
 
-// Inject container into OptimizeCommand if present
-try {
-    $optimizeCommand = $kernel->find('optimize');
-    if (method_exists($optimizeCommand, 'setContainer')) {
-        $optimizeCommand->setContainer($container);
-    }
-} catch (\Throwable $e) {
-    // Command might not be registered or found, ignore
-}
+// 3. Initialize RegenerationRegistry for cache warming
+$regenerationRegistry = new \Delirium\Core\Foundation\Cache\RegenerationRegistry();
 
-// 3. Bootstrap providers (they can access Kernel::getInstance())
-$environment = getenv('APP_ENV') ?: 'prod';
+// 4. Bootstrap providers (they can access Kernel::getInstance())
 $cacheFile = getcwd() . '/var/cache/discovery.php';
-
 $repository = new ProviderRepository($container, $cacheFile, $environment);
 
-// Register repository in container so commands can access it
-// Note: set() is not part of Psr\Container\ContainerInterface but available on our implementation
+// Register repository and registry in container so commands can access them
+/** @var \Symfony\Component\DependencyInjection\ContainerBuilder $container */
 if (method_exists($container, 'set')) {
     $container->set(ProviderRepository::class, $repository);
+    $container->set(\Delirium\Core\Foundation\Cache\RegenerationRegistry::class, $regenerationRegistry);
 }
 
-// Register DevTools provider (in dev only)
+// 5. Register Core Commands and wire dependencies
+// This logic has been moved to Kernel::initializeConsole
+$kernel->initializeConsole(
+    $container,
+    $regenerationRegistry,
+    $repository,
+    $factory,
+    $moduleClass,
+    $options
+);
+
+// 6. Register DevTools provider (in dev only)
 if ($environment === 'dev') {
     $repository->register(\Delirium\DevTools\DevToolsServiceProvider::class, 'dev');
 }
