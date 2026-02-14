@@ -6,6 +6,7 @@ namespace App\Example;
 
 use App\Group\GroupModule;
 use Delirium\Core\Attribute\Module;
+use Delirium\Core\Attribute\ModuleImport;
 
 // Example Root Module
 #[Module(
@@ -16,6 +17,9 @@ use Delirium\Core\Attribute\Module;
     providers: [
         // GreetingService::class
     ],
-    imports: [GroupModule::class],
+    imports: [
+        GroupModule::class,
+        new ModuleImport(GroupModule::class, 'subgroup'),
+    ],
 )]
 class ExampleModule {}

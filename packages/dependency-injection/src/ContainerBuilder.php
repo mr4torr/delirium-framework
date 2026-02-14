@@ -7,7 +7,7 @@ namespace Delirium\DI;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder as SymfonyContainerBuilder;
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
-
+use \Symfony\Component\DependencyInjection\Definition;
 class ContainerBuilder
 {
     private SymfonyContainerBuilder $container;
@@ -20,13 +20,23 @@ class ContainerBuilder
         $this->container->addCompilerPass(new Compiler\PropertyInjectionPass());
     }
 
-    public function register(string $id, string $class): \Symfony\Component\DependencyInjection\Definition
+    public function register(string $id, string $class): Definition
     {
         return $this->container
             ->register($id, $class)
             ->setAutowired(true)
             ->setAutoconfigured(true)
             ->setPublic(true); // Default to public for MVP
+    }
+
+    public function hasDefinition(string $id): bool
+    {
+        return $this->container->hasDefinition($id);
+    }
+
+    public function getDefinition(string $id): Definition
+    {
+        return $this->container->getDefinition($id);
     }
 
     public function getInnerBuilder(): SymfonyContainerBuilder

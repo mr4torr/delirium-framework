@@ -42,14 +42,41 @@ use Psr\Container\ContainerInterface;
 // }
 
 // 1. Create a minimal container for console context
+$environment = getenv('APP_ENV') ?: 'prod';
 $factory = new ContainerFactory();
-$options = new AppOptions();
+$options = new AppOptions(
+    new Delirium\Core\Options\DebugOptions(debug: $environment === 'dev')
+);
 
-// Use the Example module as the root for console context
-$moduleClass = 'App\\Example\\ExampleModule';
-if (!class_exists($moduleClass)) {
-    // Fallback if example is missing/renamed
-    $moduleClass = 'App\\Module';
+// 2. Discover Module Class dynamically
+$moduleClass = null;
+$srcDir = getcwd() . '/src';
+if (is_dir($srcDir)) {
+    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcDir));
+    foreach ($iterator as $file) {
+        if ($file->isFile() && str_ends_with($file->getFilename(), 'Module.php')) {
+            $content = file_get_contents($file->getPathname());
+            $namespace = '';
+            if (preg_match('/namespace\s+([^;]+);/', $content, $matches)) {
+                $namespace = trim($matches[1]);
+            }
+            $className = $file->getBasename('.php');
+            $fullClass = ($namespace ? $namespace . '\\' : '') . $className;
+
+            if (class_exists($fullClass)) {
+                $moduleClass = $fullClass;
+                // If we find AppModule.php in the root, prioritize it
+                if ($className === 'AppModule') {
+                    break;
+                }
+            }
+        }
+    }
+}
+
+if (!$moduleClass) {
+    echo "Error: No Module class found in src/ directory (expected *Module.php).\n";
+    exit(1);
 }
 
 // Ensure the class exists to avoid crash, or handle exception via try-catch around create
@@ -57,7 +84,7 @@ try {
     $container = $factory->create($moduleClass, $options);
 } catch (\Throwable $e) {
     echo "Error creating container: " . $e->getMessage() . "\n";
-    echo "Ensure 'App\\Example\\ExampleModule' exists or update bin/console.\n";
+    echo "Ensure a valid Module class exists in src/ (e.g., AppModule.php).\n";
     exit(1);
 }
 

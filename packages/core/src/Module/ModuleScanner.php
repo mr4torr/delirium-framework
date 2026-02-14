@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Delirium\Core\Module;
 
 use Delirium\Core\Attribute\Module;
+use Delirium\Core\Attribute\ModuleImport;
 use Delirium\DI\ContainerBuilder;
 use InvalidArgumentException;
 use ReflectionClass;
@@ -16,12 +17,13 @@ class ModuleScanner
      */
     private array $visited = [];
 
-    public function scan(string $moduleClass, ContainerBuilder $builder): void
+    public function scan(string $moduleClass, ContainerBuilder $builder, string $prefix = ''): void
     {
-        if (isset($this->visited[$moduleClass])) {
-            return; // Cycle detected or already visited
+        $visitKey = $moduleClass . ':' . $prefix;
+        if (isset($this->visited[$visitKey])) {
+            return; // Already visited this module with this prefix
         }
-        $this->visited[$moduleClass] = true;
+        $this->visited[$visitKey] = true;
 
         if (!class_exists($moduleClass)) {
             throw new InvalidArgumentException("Module class '{$moduleClass}' not found.");
@@ -51,12 +53,22 @@ class ModuleScanner
         // Register Controllers
         foreach ($module->controllers as $controller) {
             // Registration in DI
-            $builder->register($controller, $controller);
+            if ($builder->hasDefinition($controller)) {
+                $definition = $builder->getDefinition($controller);
+            } else {
+                $definition = $builder->register($controller, $controller);
+            }
+
+            $definition->addTag('delirium.http.prefix', ['path' => $prefix]);
         }
 
         // Recurse Imports
         foreach ($module->imports as $import) {
-            $this->scan($import, $builder);
+            if ($import instanceof ModuleImport) {
+                $this->scan($import->class, $builder, $prefix . '/' . ltrim($import->path, '/'));
+            } elseif (is_string($import)) {
+                $this->scan($import, $builder, $prefix);
+            }
         }
     }
 }

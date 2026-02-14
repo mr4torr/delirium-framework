@@ -113,7 +113,7 @@ class AttributeScanner
         return $namespace ? $namespace . '\\' . $class : $class;
     }
 
-    public function scanClass(string $className): void
+    public function scanClass(string $className, string $modulePrefix = ''): void
     {
         if (!class_exists($className)) {
             return;
@@ -128,7 +128,8 @@ class AttributeScanner
         }
 
         $controllerInstance = $controllerAttrs[0]->newInstance();
-        $prefix = rtrim($controllerInstance->prefix, '/');
+        $prefix = rtrim($modulePrefix, '/') . '/' . ltrim($controllerInstance->prefix, '/');
+        $prefix = rtrim($prefix, '/');
 
         foreach ($ref->getMethods() as $method) {
             $attributes = $method->getAttributes(RouteAttribute::class, \ReflectionAttribute::IS_INSTANCEOF);

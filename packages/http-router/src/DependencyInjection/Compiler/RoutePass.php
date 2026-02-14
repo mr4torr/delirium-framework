@@ -35,18 +35,17 @@ class RoutePass implements CompilerPassInterface
                 continue;
             }
 
-            // Optimization: check if class has Controller attribute before scanning fully?
-            // AttributeScanner::scanClass performs the check internally efficiently using Reflection.
-            // Using reflection directly here avoids loading the class if we can inspect via token?
-            // But we already checked class_exists(autoload).
+            // Process all prefix tags
+            $prefixes = [''];
+            if ($definition->hasTag('delirium.http.prefix')) {
+                $tags = $definition->getTag('delirium.http.prefix');
+                $prefixes = array_column($tags, 'path');
+            }
 
-            // Just delegate to scanner.
-            // Note: Scanner adds to $tempRegistry.
-            // We want to capture what was added.
-
-            // Reset temp registry logic or accumulate all?
-            // Accumulate all is fine.
-            $scanner->scanClass($class);
+            // Just delegate to scanner for each prefix.
+            foreach ($prefixes as $prefix) {
+                $scanner->scanClass($class, $prefix);
+            }
         }
 
         // 4. Transfer collected routes to the service definition
